@@ -1,4 +1,132 @@
-# Apuntes de clase {-}
+# Regresión simple {-}
 
-## Regresión simple
+- **No es automáticamnte fiable** el modelo que se construye según regresión lineal.
 
+## El modelo lineal
+
+- El objetivo es explicar una respuesta $y$ por medio de **regresores** (predictores)
+**independientes**, vía una combinación lineal de transformaciones conocidas de los regresores,
+y según **parámetros** (coeficientes) desconocidos que se necesita estimar.
+
+- El modelo es **lineal en los parámetros**, no necesariamente en los regresores.
+
+$$
+\eta := \hat{y} = f (z_1, \dots, z_p \;|\; \beta_1, \dots, \beta_s)
+= \sum_{i=1}^{s} \beta_j x_j (z_1, \dots, z_p)
+= \sum_{i=1}^{s} \beta_j x_j \;,
+$$
+
+donde las $s$ (no necesariamente $p$ exactamente) funciones $x_j: \mathbb{R}^p \to \mathbb{R}$
+transforman los regresores, pero **sin parámetros desconocidos**.
+
+Un modelo lineal generalizado corresponde a casos como 
+$\xi = \delta e^{\gamma z}$, donde se tiene $\log\eta := \log\xi = \log\delta + \gamma z$
+
+## Notaciones
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+## Análisis del modelo lineal
+
+Modelo lineal: $y = \alpha + \beta x$.
+
+- Problemas
+  - Pasar por el origen 
+  - ¿Realmente hay linealidad?
+  - Distribución de los datos
+
+La estimación $\eta$ da lugar a un error,
+el cual incluso puede tratarse de un **error de medición**, de la forma
+
+$$
+  y_i = \alpha + \beta x_i + \epsilon_i, \quad
+  \forall 1\leq i \leq n \;.
+$$
+
+
+## Estimación de los parámetros
+
+- Para las estimaciones $\eta_{x_i} = \alpha + \beta x_i$,
+se cumple $\epsilon_i = y_i - \eta_{x_i}$:
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+- Identificaremos la **recta de regresión** como aquella que
+**minimiza la suma de cuadrados de los errores**.
+
+$$
+SS_{e} := S_{\epsilon\epsilon} = \sum_{i} \epsilon_{i}^2
+= \sum_{i} \left( y_i - \alpha - \beta x_i \right)^2 . 
+$$
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+Así, se obtiene, **suponiendo** $\text{var}(x) > 0$:
+
+$$
+\begin{align}
+  \hat{\alpha} &= \bar{y} - \hat{\beta}\bar{x} \\
+
+  \hat{\beta} &= S_{\dot{y}\dot{x}} / S_{\dot{x}\dot{x}} \; .
+\end{align}
+$$
+
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+
+## Implementación
+
+***PENDING CHECK si residuo relativo era entre eta o el "y"***
+- Es importante analizar también el **residuo relativo**, $\epsilon / \eta$. 
+Esto pues, si los $y$ no cambian mucho, los errores podrían ser, por default, pequeños.
+
+
+## La recta de los mínimos cuadrados
+
+En este curso, el **sombrero** representará estimación vía mínimos cuadrados.
+
+La recta de los mínimos cuadrados es de la forma $\hat{y} = \hat{\alpha} + \hat{\beta}x$,
+donde se cumple
+
+$$
+\begin{align}
+  \hat{\alpha} &= \bar{y} - \hat{\beta}\bar{x} \\
+
+  \hat{\beta} &= S_{\dot{y}\dot{x}} / S_{\dot{x}\dot{x}} \; .
+\end{align}
+$$
+
+### Propiedades cuando la recta NO pasa por el origen
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+- La recta de los mínimos cuadrados pasa por el punto $(\bar{x}, \bar{y})$,
+baricentro de los datos.
+
+- $\displaystyle{\sum_{i} (y_i - \hat{y}_i) = 0}$. Es decir, 
+*la suma de los desvíos a los valores estimado es cero*.
+
+- En consecuencia, se tiene $\bar{y} = \bar{\hat{y}}$.
+
+- A los errores respectivos los llamaremos **residuos**.
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+
+## La recta de los mínimos cuadrados que pasa por el origen
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+$$
+\hat{\beta} = S_{yx} / S_{xx} \; .
+$$
+
+- En este caso no necesariamente se cumple $\bar{y} = \bar{\hat{y}}$.
+
+
+## Contribución y apalancamiento
+
+- **Resulta que más lejos es $x_j$ de $\bar{x}$; más $y_j$ influye sobre la determinación de $\hat{\eta}_i$.**
+
+***PEEENDIIING*** (CHECK till end of slides pdf)
