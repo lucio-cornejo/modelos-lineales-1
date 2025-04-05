@@ -2,24 +2,25 @@ project:
   type: book
 
 book:
-  title: "modelos"
-  author: "Norah Jones"
-  date: "5/4/2025"
+  title: "Modelos lineales 1"
+  author: "Lucio Cornejo"
+  date: "2025/03/24"
   chapters:
     - index.qmd
-    - intro.qmd
-    - summary.qmd
-    - references.qmd
-
-bibliography: references.bib
+    - part: "Semana 1"
+      chapters: 
+        - apuntes/clase-01.qmd
+    - part: "Semana 2"
+      chapters: 
+        - apuntes/clase-02.qmd
 
 format:
   html:
-    theme:
-      - cosmo
-      - brand
-  pdf:
-    documentclass: scrreprt
+    theme: cosmo
+    fontsize: 16pt
+    toc-title: Tabla de Contenidos
+    toc-depth: 4
+    css: style.css
 
-
-
+execute:
+  freeze: true

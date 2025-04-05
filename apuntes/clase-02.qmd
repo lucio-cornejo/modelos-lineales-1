@@ -1,0 +1,4 @@
+# Apuntes de clase {-}
+
+## Regresión simple
+

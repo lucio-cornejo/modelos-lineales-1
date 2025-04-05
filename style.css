@@ -1,0 +1,10 @@
+.figure-caption {
+  text-align: center;
+}
+
+.theorem-title {
+  color: crimson;
+  padding: 2px 3px;
+  margin-right: 10px;
+  background-color: gold;
+}
