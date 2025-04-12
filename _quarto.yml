@@ -13,6 +13,9 @@ book:
     - part: "Semana 2"
       chapters: 
         - apuntes/clase-02.qmd
+    - part: "Semana 3"
+      chapters: 
+        - apuntes/clase-03.qmd
 
 format:
   html:

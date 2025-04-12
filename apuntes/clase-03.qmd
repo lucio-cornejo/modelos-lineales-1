@@ -1,0 +1,101 @@
+# Regresión múltiple {-}
+
+## Notación matricial
+
+El modelo lineal puede reescribirse como $y = X\beta + \epsilon$,
+donde $\textbf{y} = (y_1, \dots, y_n)^T$ con $X = (x_1, \dots, x_n)^T$
+son los vectores respuesta y explicativo, respectivamente;
+además de $\beta = (\beta_1, \beta_2)^T$, el vector de residuos
+$\epsilon = (e_1, \dots, e_n)^T$, y
+$X = \left( (1, \dots, 1),\; X \right)$
+
+De esa manera, el problema lineal resulta en encontrar el vector $\beta$
+que minimiza 
+
+$$
+|| \textbf{y} - X\beta ||^2 
+= \left( \textbf{y} - X\beta \right)^T \left( \textbf{y} - X\beta \right)
+$$
+
+
+## La regresión lineal múltiple
+
+Considere ahora $X = (1, x_1, \dots, x_{p-1})$ y 
+$\beta = (\alpha, \beta_1, \dots, \beta_{p-1})$.
+
+## Modelo geométrico
+
+- Existe más **variabilidad** en los parámetros por estimar,
+si se tiene menos observaciones ($n$) que predictores ($p$).
+Por ello, se suele suponer $n >> p$.
+
+- Se tienen los predictores $(x_1, \dots, x_p)$, donde suponemos
+$x_1 = \textbf{1}$, para estimar la constante del modelo.
+Así, se obtiene la matriz $X = X_{n\times p}$.
+
+- Los residuos forman tambien un vector $\epsilon = (\epsilon_1, \dots, \epsilon_n)$.
+De esa manera, se obtien $\textbf{y} = X\beta + \epsilon$.
+
+- Los predictores $x_i$ definen un **espacio solución**, cuya dimensión 
+(**rango** (número máximo de columnas linealmente independientes) 
+de la matriz $X$) es a lo más $p$, menor que $n$. 
+Tal dimensión es $p$ si y solo si los predictores son **linealmente independientes**.
+
+- Si el rango de $X$ es **menor que $p$**, entonces resulta **no invertible**
+la matriz $X^T X$.
+
+- **Teorema**: La estimación $\hat{\eta}$ resulta ser la proyección del vector
+$y$ sobre el espacio solución definido por la matriz $X$ de predictores.
+Es decir, $\hat{\eta} = \mathcal{P}_{X}(\textbf{y})$
+
+- Resulta natural expresar 
+$\textbf{y} = \mathcal{P}_{X}\textbf{y} \oplus \mathcal{E}_{X}\textbf{y}$,
+donde se cumple $\mathcal{E}_X \textbf{y} \colon= \mathcal{P}_{X^{\bot}} \textbf{y}$.
+
+
+## Estimación de los parámetros
+
+- Se cumple $\hat{\beta} = (X^T X)^{-1}X^T \textbf{y}$.
+
+- Al espacio $X^{\bot}$ se le denomina el **espacio de residuos**,
+y se cumple $X^T \times \epsilon = \textbf{0}$, $\textbf{e} = \textbf{y} - \hat{\eta}$
+es la proyección ortogonal de $\textbf{y}$ sobre $X^{\bot}$.
+Así, el vector de residuos es ortogonal a $\hat{\eta}$.
+
+- En el caso que la matriz $X$ no sea de rango máximo, se emplea una *inversa generalizada*.
+En particular, se usa la **inversa de Moore-Penrose**, $X^+$.
+
+- No es necesario trabajar con $X$ de rango incompleto, pues se puede quitar regresores
+con el fin que la matriz resultante posea rango completo.
+
+- La colinearidad de los regresores que componen la matriz $X$ generan una
+indeterminación de los parámetros $\beta$, pues se pierde la **determinación unívoca**.
+
+
+## Análisis de la varianza
+
+- En este caso, se supone que el modelo consiste en el afectar a cada grupo
+el promedio de sus observaciones. Así, las $n$ observaciones son repartidas 
+en $q$ grupos, con cantidades $n_1, \dots, n_q$.
+
+$$
+SS_T
+= \sum_{i=1}^{n} y_i^2 
+= \sum_{k=1}^{q} n_k \bar{}^2  + 
+  \sum_{}^{} 
+= SS_B + SS_W
+$$
+
+***PEEENDIIING*** (CHECK SLIDES)
+
+- $SS_e = SS$
+
+***PENDING TABLA DE ANALISIS DE VARIANZA*** (CHECK SLIDES)
+
+
+## Apalancamiento
+
+- La matriz que proyecta sobre el espacio $X$ resulta
+$\mathcal{P} = X(X^T X)^{-1} X^T \colon = \hat{H}$.
+
+***PEEENDIIING*** (CHECK SLIDES)
