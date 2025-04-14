@@ -1,0 +1,234 @@
+---
+title: "Ejercicio 1"
+author: "Lucio Cornejo"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 120
+---
+
+
+## Ejemplo de lectura de datos
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width = 300)
+library(readODS)
+```
+
+En la primera ejecución de este documento, no existe el archivo `Eggs.csv`, por lo cual deshabilitamos su carga.
+
+```{r}
+#| label: read_data
+#| eval: false
+eggs <- read.csv("Eggs.csv", header=TRUE,row.names=1)             # lectura datos
+head(eggs)                                                        # control
+str(eggs)                                                         # estructura data-frame
+print(eggs)
+```
+
+
+Cargamos los datos del arhivo `Eggsorg.ods`.
+
+```{r}
+#| label: read_data_1
+eggs <- read_ods("Eggsorg.ods", sheet = 1)                        # lectura datos
+head(eggs)                                                        # control
+str(eggs)                                                         # estructura data-frame
+```
+
+Resulta necesario indicar que la columna `Name` debe considerarse una etiqueta de fila.
+Además, la variable `eggs` debe ser de tipo `data.frame`, no `tibble`.
+
+
+```{r}
+#| label: read_data_2
+# Lectura con etiquetas
+eggs <- read_ods("Eggsorg.ods", sheet = 1, row_names = TRUE, as_tibble = FALSE) 
+head(eggs)
+str(eggs)
+
+# Escritura .csv
+write.csv(eggs, file = "Eggs.csv")                              
+```
+
+Removemos los espacios extra al inicio y final de cada etiqueta de fila y columna.
+
+```{r}
+#| label: read_data_3
+rownames(eggs) <- trimws(rownames(eggs), which = c("both"))     
+colnames(eggs)
+
+colnames(eggs) <- c(
+  "Family", "Size", "Nesting ground", "Eggs",
+  "Length", "Width", "Mass", "Hatch"
+)
+print(eggs)                                  
+
+write_ods(
+  eggs, 
+  "Eggs.ods", 
+  # Nueva hoja
+  sheet = "Data",                     
+  row_names = TRUE, 
+  col_names = TRUE
+)
+
+# Reescribimos el archivo .csv, ahora correcto
+write.csv(eggs, file = "Eggs.csv")
+```
+
+
+## Item 6
+
+Cargar datos.
+
+```{r}
+#| label: cargar-datos
+SudAmerica <- read.csv("SudAmerica.csv", row.names = 1)
+SudAmerica
+
+Baseball <- read.csv("Baseball.csv", row.names = 1)
+Baseball
+
+Students <- read.csv("Students.csv", row.names = 1)[, c("midterm", "final")]
+Students
+```
+
+Guardar datos como archivos de tipo `.ods`.
+
+```{r}
+#| label: guardar-datos
+write_ods(
+  SudAmerica, 
+  "SudAmerica.ods", 
+  sheet = "Data",                     
+  row_names = TRUE, 
+  col_names = TRUE
+)
+
+write_ods(
+  Baseball, 
+  "Baseball.ods", 
+  sheet = "Data",                     
+  row_names = TRUE, 
+  col_names = TRUE
+)
+
+write_ods(
+  Students, 
+  "Students.ods", 
+  sheet = "Data",                     
+  row_names = TRUE, 
+  col_names = TRUE
+)
+```
+
+## Item 7: Gráficos descriptor vs criterio
+
+### SudAmerica
+
+En los datos de `SudAmerica` se observa una no insignificante relación lineal entre el par de variables presentadas.
+Esto salvo, por lo menos, para las observaciones *Perú* y *Bolivia*.
+
+```{r}
+#| label: SudAmerica-grafico-par-de-variables
+with(SudAmerica, {
+  plot(Tajo_urbano, IDH, xlab = "Tajo_urbano", ylab = "IDH")
+  text(Tajo_urbano, IDH, rownames(SudAmerica))
+  identify(Tajo_urbano, IDH, rownames(SudAmerica))
+})
+```
+
+### Baseball
+
+En los datos de `Baseball` se observa una no insignificante relación lineal entre el par de variables presentadas.
+Sin embargo, parece haber más observaciones, en comparación a los datos de `SudAmerica`, para las cuales no se
+cumple esa relación lineal; por ejemplo, para `Minnesota` (en mayor grado), `Kansas_City`, y en menor grado
+para  `Cleveland`, `Toronto` y `Milwaukee`.
+
+```{r}
+#| label: Baseball-grafico-par-de-variables
+with(Baseball, {
+  plot(BattingAvg, WinningPerc, xlab = "BattingAvg", ylab = "WinningPerc")
+  text(BattingAvg, WinningPerc, rownames(Baseball))
+  identify(BattingAvg, WinningPerc, rownames(Baseball))
+})
+```
+
+### Students
+
+En los datos de `Students`, no se observa una relación lineal tan significativa en comparación con los datos
+`SudAmerica` y `Baseball`. Las observaciones de `midterm` y `final` no parecen estar conglomeradas alrededor de una recta.
+
+```{r}
+#| label: Students-grafico-par-de-variables
+with(Students, {
+  plot(midterm, final, xlab = "midterm", ylab = "final")
+  text(midterm, final, rownames(Students))
+  identify(midterm, final, rownames(Students))
+})
+```
+
+
+## Item 8: Regresión lineal simple
+
+### SudAmerica
+
+```{r}
+#| label: regresion-SudAmerica
+lmSA <- lm(IDH ~ Tajo_urbano, data = SudAmerica)
+
+with(SudAmerica, {
+  plot(Tajo_urbano, IDH, xlab = "Tajo_urbano", ylab = "IDH")
+  identify(Tajo_urbano, IDH, rownames(SudAmerica))
+  # Recta de regresión
+  abline(lmSA, col = "red")
+  # Estimaciones
+  points(Tajo_urbano, lmSA$fitted.values, col = "red")
+})
+
+summary(lmSA)
+plot(lmSA)
+```
+
+
+### Baseball
+
+```{r}
+#| label: regresion-Baseball
+lmBaseball <- lm(WinningPerc ~ BattingAvg, data = Baseball)
+
+with(Baseball, {
+  plot(BattingAvg, WinningPerc, xlab = "BattingAvg", ylab = "WinningPerc")
+  identify(BattingAvg, WinningPerc, rownames(Baseball))
+  # Recta de regresión
+  abline(lmBaseball, col = "red")
+  # Estimaciones
+  points(BattingAvg, lmBaseball$fitted.values, col = "red")
+})
+
+summary(lmBaseball)
+plot(lmBaseball)
+```
+
+### Students
+
+```{r}
+#| label: regresion-Students
+lmStudents <- lm(final ~ midterm, data = Students)
+
+with(Students, {
+  plot(midterm, final, xlab = "midterm", ylab = "final")
+  identify(midterm, final, rownames(Students))
+  # Recta de regresión
+  abline(lmStudents, col = "red")
+  # Estimaciones
+  points(midterm, lmStudents$fitted.values, col = "red")
+})
+
+summary(lmStudents)
+plot(lmStudents)
+```
