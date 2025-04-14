@@ -1,0 +1,61 @@
+---
+title: "Eggs"
+author: "Sergio Camiz"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 120
+---
+
+## Ejemplo de lectura de datos
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width = 300)
+library(readODS)
+```
+
+Sacamos datos de uevos de pajaros de una hoja electrónica construida a partir de un pdf. Si la hoja se ha guardado también en formado .csv, o sea con texto con separador comas, se usa la función read.csv().
+
+```{r read_data}
+eggs <- read.csv("Eggs.csv", header=TRUE,row.names=1)             # lectura datos
+head(eggs)                                                        # control
+str(eggs)                                                         # estructura data-frame
+print(eggs)
+```
+
+Se puede usar directamente la función read_ods() del pacote readODS, que se ha hecho disponible arriba. Pero hay unos problemas.
+
+```{r read_data_1}
+eggs <- read_ods("Eggsorg.ods", sheet = 1)                        # lectura datos
+head(eggs)                                                        # control
+str(eggs)                                                         # estructura data-frame
+```
+
+Los datos se han sacado, pero se resulta el nobre del pajaro como una variable de tipo caracter. Por tanto, se necesita indicar que la primera columna tiene etiquetas. Por esto hay también que indicar que queremos conseguir un data.frame y no un "tibble". 
+
+```{r read_data_2}
+eggs <- read_ods("Eggsorg.ods", sheet = 1, row_names = TRUE, as_tibble = FALSE) # lectura con etiquetas
+head(eggs)
+str(eggs)
+write.csv(eggs, file = "Eggs.csv")                              # escritura .csv
+```
+
+Ahora los nombres resultan como etiquetas, pero mirando a los datos que resultan en el archivo .csv se ve que en las etiquetas hay espacios. Esto debido a que los datos se han cargado en la hoja con espacios de todo lado, que como datos se han limpiado, pero no como etiquetas. 
+
+Le tiramos los espacios, igualmente limpiamos las etiquetas de las variables, que aparecen con varios caracteres más.
+
+```{r read_data_3}
+rownames(eggs) <- trimws(rownames(eggs), which = c("both"))     # se tiran los espacios  
+colnames(eggs)                                                  # etiquetas columnas 
+colnames(eggs) <- c("Family","Size","Nesting ground","Eggs",    # se copian sin espacios
+                    "Length","Width","Mass","Hatch") 
+print(eggs)                                                     # se veen los datos
+write_ods(eggs, "Eggs.ods", sheet = "Data",                     # nueva hoja
+          row_names = TRUE, col_names = TRUE)
+write.csv(eggs, file = "Eggs.csv")                              # nuevo .csv
+```
+
+Los archivos guardados se resultan correctos.
