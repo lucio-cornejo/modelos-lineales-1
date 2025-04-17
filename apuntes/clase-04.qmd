@@ -1,0 +1,60 @@
+# Propiedades estadísticas {-}
+
+## Propiedades estadísiticas de los estimadores
+
+- Se necesitan ciertas *hipótesis*:
+    - Las observaciones $y_i$ con **variables aleatorias independientes**.
+    - Por cada observación/fila ($x_i$) de $\textbf{X}$, $y_i$ tiene la **misma distribución**.
+    - $E(y_i | x_i) = \eta_i$; es decir, el **modelo es correcto**.
+    - $V(y_i | x_i) = \sigma^2$, constante para cada $i$ (**homoscedasticidad**).
+
+  
+**PENDING** (condiciones matriciales y no matriciales sobre el error)
+
+### Esperanza
+
+- Los estimadores $\hat{\beta}, \hat{\epsilon}, \hat{e}$ son **insesgados**.
+
+### Varianza
+
+**PENDING**
+
+### El teorema de Gauss-Markov
+
+**PENDING**
+
+## Análisis de varianza
+
+**PENDING**
+
+## Inferencia
+
+**PENDING**
+
+## Test del modelo
+
+**PENDING**
+
+## Test de los $\hat{\beta_i}$
+
+- Los intervalos de confianza individuales pueden **exceder** el intervalo de confianza global.
+
+**PENDING**
+
+## Test de la varianza $SS_e$
+
+## Test de la varianza $\hat{\eta_i}$
+
+## Test del predictor
+
+## El programa $lm$
+
+- Sin intercepto: `Y ~ X - 1`
+- Tirar una variable `Y ~ . - T`
+- Producto/**interacción**: `Y ~ X:Z` 
+- Interacción a lo más doble: `Y ~ X*Z` representa `Y ~ X + Z + X:Z`
+
+- Incluir expresión matemática en `I()`: `Y ~ I(X + Y)` representa
+$y_i = \alpha + \beta(x_i + z_i)$.
+
+

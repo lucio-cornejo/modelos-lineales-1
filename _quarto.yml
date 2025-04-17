@@ -16,6 +16,7 @@ book:
     - part: "Semana 3"
       chapters: 
         - apuntes/clase-03.qmd
+        - apuntes/clase-04.qmd
 
 format:
   html:
