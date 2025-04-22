@@ -1,2 +1,4 @@
 /.quarto/
 _book
+renv
+libs

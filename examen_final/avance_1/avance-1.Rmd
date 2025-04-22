@@ -1,0 +1,318 @@
+---
+title: "Examen final: Avance 1"
+author: "Lucio Cornejo"
+date: "`r Sys.Date()`"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    theme: united
+    highlight-style: tango
+    toc-float: 
+      collapsed: false
+      smooth-scroll: true
+
+execute: 
+  cache: true
+
+editor:
+  markdown:
+    wrap: 120
+
+knitr:
+  opts_chunk: 
+    warning: false
+    message: false
+---
+
+
+<!-- ---
+title: "Examen final: Avance 1"
+author: "Lucio Cornejo"
+date: today
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    theme: united
+    highlight-style: tango
+    toc-float: 
+      collapsed: false
+      smooth-scroll: true
+
+execute: 
+  cache: true
+
+editor:
+  markdown:
+    wrap: 120
+--- -->
+
+
+## Descripción
+
+Los datos fueron descargados de este sitio [web](https://www.kaggle.com/datasets/shubhamsingh57/ml-model-practice-linear-regression/data).
+
+La investigación consiste en **predecir** el costo a pagar, considerando el descuento
+que proporciona el seguro médico, por algún procedimiento médico. 
+
+Estos datos son de distintos pacientes que recibieron algún tipo de tratamiento médico, de los cuales se tienen variables recopiladas, como edad, sexo, si fuma o no, etc.
+Así, descartamos que los datos consistan de una serie de tiempo.
+
+En ese sentido, como objetivo de la investigación, no solo se considera la predicción
+de la variable mencionada, sino también cómo es que influyen las variables que emplearemos como regresores, en la predicción final.
+Por ejemplo, si su relación es directa o inversamente proporcional.
+
+## Estructura de los datos
+
+A continuación, mostramos los datos descargados del sitio web mencionado
+en la sección previa.
+
+```{r}
+#| output: false
+#| warning: false
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+```
+
+```{r}
+datos <- readr::read_csv("new_insurance_data.csv")
+dplyr::glimpse(datos)
+```
+
+### Variables iniciales
+
+- Variables **cualitativas**
+  - `sex`: Sexo.
+  - `smoker`: Si el paciente fuma o no.
+  - `region`: Región de la que provee el paciente.
+  
+- Variables **cuantitativas**
+  - `age`: Edad.
+  - `bmi`: Índice de masa corporal.
+  - `children`: Cantidad de hijos e hijas.
+  - `Claim_Amount`: Costo médico que el paciente pagaría en caso no se aplicase seguro médico.
+  - `past_consultations`: Número de procedimientos pasados del paciente.
+  - `num_of_steps`: Número de pasos que realizó el paciente en cierto día.
+  - `Hospital_expenditure`: Gastos del hospital debido al procedimiento médico.
+  - `Number_of_past_hospitalizations`: Número de veces que el paciente ha sido hospitalizado.
+  - `Anual_Salary`: Salario anual.
+  - `charges`: **Pago final** que el paciente realizó por el procedimiento médico, 
+  tras haberse descontado el monto que cubre el seguro médico.
+
+**Carácter respuesta**: `charges`
+
+Debido a la limitación, para esta investigación, de máximo 10 variables,
+además de solo una o dos variables cualitativas, ignoraremos algunas variables
+para este trabajo.
+
+### Filtro de variables
+
+Para el filtro de variables categóricas, descartaremos aquella para la
+cual las distribuciones de la variable respuesta, respecto a los valores
+de aquella variable categórica sean relativamente similares.
+
+#### Variable cualitativa `region`
+
+Inspeccionamos la distribución de la variable respuesta, respecto a los 
+valores de la variable categórica `region`.
+
+```{r}
+datos |>
+  ggplot(aes(x = charges, color = region, fill = region)) +
+    geom_density(alpha = 0.4) +
+    labs(
+      title = "Densidad de 'charges' para cada categoría de 'region'",
+      x = "charges",
+      y = "Densidad"
+    ) +
+    theme_minimal()
+```
+
+En base a que aquellas funciones densidad no presentan una difencia resaltante,
+descartaremos la variable `region`.
+De esa manera, las variables cualitativas que emplearemos para esta investigación son solo `sex` y `smoker`.
+
+
+Por otro lado, en el caso de las variables cuantitativas, primero inspeccionamos
+la correlación entre aquellas. Esto para descartar alguna de las variables que 
+presente (de ser el caso) alta correlación lineal con otra variable cuantitativa.
+
+A continuación, presentamos un heatmap de aquella matriz de correlaciones:
+
+```{r}
+datos_sin_na <- tidyr::drop_na(datos)
+
+matriz_cor <- datos_sin_na |>
+  dplyr::select(
+    age,
+    bmi,
+    children,
+    Claim_Amount,
+    past_consultations,
+    num_of_steps,
+    Hospital_expenditure,
+    Number_of_past_hospitalizations,
+    Anual_Salary,
+  ) |>
+  cor()
+
+melt(matriz_cor) |>
+  ggplot(aes(Var1, Var2, fill = value)) +
+    geom_tile() +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_text(angle = 45, hjust = 1)
+      ) +
+    labs(title = "Heatmap de correlación", x = "Variables", y = "Variables")
+```
+
+Observamos una alta correlación entre `Anual_Salary` y `Hospital_expenditure`,
+con un valor de `r cor(datos_sin_na$Anual_Salary, datos_sin_na$Hospital_expenditure)`. Asimismo, como la variable de salario anual es más sencilla de recopilar (por ejemplo, en una encuesta) que la de gasto de hospital, 
+descartamos la variable cuantitativa `Hospital_expenditure`.
+
+```{r}
+datos |>
+  ggplot(aes(x = Anual_Salary, y = Hospital_expenditure)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Salario anual", y = "Gasto del hospital") +
+  theme_minimal()
+```
+
+#### Variable cuantitativa `num_of_steps`
+
+Inicialmente se consideró descartar la variable referente al número
+de pasos que realizó el paciente en cierto día.
+Esto pues, a primera vista, no se esperaría que tal información
+resulte relevante para el costo final por el procedimiento médico.
+
+Graficamos tal posible regreso contra la variable respuesta:
+
+```{r}
+datos |>
+  ggplot(aes(x = num_of_steps, y = charges)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Número de pasos", y = "Pago final") +
+  theme_minimal()
+```
+
+En base a que la relación parece asemejarse a una exponencial,
+graficamos la variable `num_of_steps` contra el logaritmo de la variable respuesta:
+
+```{r}
+datos |>
+  dplyr::mutate(scaled_rsp = log(charges)) |>
+  ggplot(aes(x = num_of_steps, y = scaled_rsp)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Número de pasos", y = "Pago final") +
+  theme_minimal()
+```
+
+En base a que aquella relación parece ser *aproximadamente* lineal,
+optamos por no descartar la variable cuantitativa `num_of_steps`.
+
+#### Variable cuantitativa `num_of_steps`
+
+```{r}
+datos |>
+  ggplot(aes(x = num_of_steps, y = charges)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Número de pasos", y = "Pago final") +
+  theme_minimal()
+```
+
+
+#### Variable cuantitativa `age`
+
+```{r}
+datos |>
+  ggplot(aes(x = age, y = charges)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Edad", y = "Pago final") +
+  theme_minimal()
+```
+
+#### Variable cuantitativa `bmi`
+
+```{r}
+datos |>
+  ggplot(aes(x = bmi, y = charges)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Índice de masa corporal", y = "Pago final") +
+  theme_minimal()
+```
+
+#### Variable cuantitativa `children`
+
+```{r}
+datos |>
+  ggplot(aes(x = children, y = charges)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Número de hijos", y = "Pago final") +
+  theme_minimal()
+```
+
+#### Variable cuantitativa `past_consultations`
+
+```{r}
+datos |>
+  ggplot(aes(x = past_consultations, y = charges)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  labs(x = "Número de procedimientos pasados", y = "Pago final") +
+  theme_minimal()
+```
+
+Descartamos la variable cuantitativa `children`, pues, 
+en base a este simple análisis inicial, no parece indicar algún de tipo de
+relación lineal con la variable por predecir. Es más, su gráfico de dispersión
+parece sugerir que consideremos a la variable `children` como cualitativa.
+
+### Variables finales
+
+- Variables cualitativas: 
+    - `sex`
+    - `smoker`
+
+- Variables cuantitativas:
+    - `age`
+    - `bmi`
+    - `Claim_Amount`
+    - `past_consultations`
+    - `num_of_steps`
+    - `Number_of_past_hospitalizations`
+    - `Anual_Salary`
+    - `charges` (**variable respuesta**)
+
+## Base de datos
+
+La base de datos consiste de `r nrow(datos)` observaciones.
+Si eliminamos filas que posean algún dato vacío, se tienen
+`r nrow(datos_sin_na)` observaciones.
+
+Para limitarnos a 500 filas, realizaremos un muestreo:
+
+```{r}
+datos_finales <- datos_sin_na |>
+  dplyr::select(
+    sex,
+    smoker,
+    age,
+    bmi,
+    Claim_Amount,
+    past_consultations,
+    num_of_steps,
+    Number_of_past_hospitalizations,
+    Anual_Salary,
+    charges
+  )
+
+datos_finales <- dplyr::sample_n(datos_finales, 500)
+
+openxlsx::write.xlsx(datos_finales, 'datos.xlsx')
+```
