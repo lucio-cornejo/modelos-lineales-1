@@ -1,0 +1,62 @@
+# Selección del modelo {-}
+
+## Partición de la regresión
+
+Se abarca el caso si algunos regresores son **suficientes** para el modelo,
+en el sentido de si otros regresores pueden descartarse.
+
+En caso las particiones de la muestra sean **ortogonales**, los cálculos
+matemáticos se reducen a realizar *dos regresiones independientes*.
+
+### Caso no ortogonal
+
+Se ortogonaliza la segunda partición respecto a la primera.
+Se considera el caso ortogonal, ya visto, respecto a esa ortogonalización y la primera partición.
+
+
+## La eliminación del promedio
+
+***PENDING***
+
+## Varianza, covarianza y correlación
+
+Para la selección de modelo, los resumiremos en matrices, las cuales compararemos.
+
+### El coeficiente de correlación parcial
+
+***PENDING***
+
+Se cumple $\text{cor}(x_1, x_2 | z) = \text{cor}(e_1, e_2)$, donde los errores $e_1$ y $e_2$
+
+A partir de la matriz inversa (si existe) de la matriz de correlación, $C^{-1}(X)$,
+se demuesta que la correlación múltiple de cada columna $x_j$ con las demás
+resulta ser $r_{j, 1\dots,p} = \sqrt{1 - \dfrac{1}{c'_{jj}}}$
+
+***PENDING***
+
+## Técnicas de regresión
+
+***PENDING***
+
+### El registro exhaustivo
+
+Para p regresores, habría que realizar $2^p - 1$ modelos.
+
+### Medidas de comparación
+
+***PENDING***
+
+- El $R^2$ ajustado **no es una proporción de varianza estimada**, sirve para seleccionar el modelo.
+- El $R^2$ **sí es una proporción de varianza estimada**, entonces sí sirve mencionarlo. 
+Sin embargo, tener en cuenta que, para selección de modelo, no usar el $R^2$ cuando se tiene diferente
+cantidad de regresores.
+
+### Método paso a paso: Selección para adelante
+
+### Método paso a paso: Selección para atrás
+
+### La regresión paso a paso (stepwise)
+
+***PENDING***
+
+(also anotar sugerencia de sensei para comparar dos modelos)
