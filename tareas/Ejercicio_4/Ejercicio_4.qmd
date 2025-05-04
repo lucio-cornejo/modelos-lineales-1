@@ -1,0 +1,40 @@
+---
+title: "Ejercicio 4"
+author: "Lucio Cornejo"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    theme: united
+    highlight: tango
+    number-sections: true
+    toc-float: true
+editor:
+  markdown:
+    wrap: 120
+---
+
+<!-- ---
+title: "Ejercicio 4"
+author: "Lucio Cornejo"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      position: left
+    theme: united
+    highlight: tango
+    number_sections: true
+
+editor_options:
+  markdown:
+    wrap: 120
+--- -->
+
+

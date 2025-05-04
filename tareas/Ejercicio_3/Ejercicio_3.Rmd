@@ -1,0 +1,170 @@
+---
+title: "Ejercicio 3"
+author: "Lucio Cornejo"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      position: left
+    theme: united
+    highlight: tango
+    number_sections: true
+
+editor_options:
+  markdown:
+    wrap: 120
+---
+
+## Preguntas 3 y 4
+
+```{r}
+#| label: leer-datos
+Linnerud <- read.csv("Linnerud.csv", row.names = 1)
+Linnerud
+```
+
+```{r}
+regre <- function(X, y) {
+  results <- list()
+  lab <- rownames(X)
+  X <- as.matrix(X)
+  
+  # regresion-a-mano
+  x     <- X
+  n     <- dim(x)[1]                           # n es el número de observaciones
+  p     <- dim(x)[2]                           # numero de regresores
+  nomy  <- deparse(substitute(y))
+  nom   <- c(colnames(x),nomy)                 # etiquetas de las variables en nom
+
+  print(nom)
+
+  # estadisticas
+  xm    <- apply(x,2,mean)                     # cálculo de xm, promedio de x
+  ym    <- sum(y)/n                            # cálculo de ym, promedio de y
+  ssx   <- apply(x^2,2,sum)                    # ssx es la suma de los x cuadros
+  ssy   <- sum(y^2)                            # ssy es la suma de los y cuadros
+  sxy   <- t(x)%*%y                            # sxy es la suma de los productos xy
+  ssxc  <- ssx-n*xm^2                          # ssxc es ssx centrado sobre el promedio
+  ssyc  <- ssy-n*ym^2                          # ssyc es ssy centrado sobre el promedio
+  sxyc  <- sxy-n*xm*ym                         # sxyc es sxy centrado sobre el promedio
+  varx  <- ssxc/n                              # varx es la varianza de x
+  vary  <- ssyc/n                              # vary es la varianza de y
+  covxy <- sxyc/n                              # covxy es la covarianza de xy
+  stats <- matrix(8*(2*p+1)*0,nrow=8,ncol=(2*p+1)) # construcción de tabla de estadísticas
+  rownames(stats) <- c("Mínimo","Máximo","Promedio","Total","Suma de cuadrados",
+                    "Cuadrados centrados","Varianza covarianza","Desvío estándar")
+  colnames(stats) <- c(nom, paste0("x", 1:p, "y"))
+  stats[,1:p] <- rbind(apply(x,2,min),apply(x,2,max),xm,apply(x,2,sum),ssx,ssxc,varx,sqrt(varx))
+  stats[,p+1] <- rbind(min(y),max(y),ym,sum(y),ssy,ssyc,vary,sqrt(vary))
+  stats[,c((p+2):(2*p+1))] <- rbind(t(rep(0,p)),t(rep(0,p)),t(rep(0,p)),t(rep(0,p)),t(sxy),t(sxyc),t(covxy),t(rep(0,p)))
+
+  results$stats <- stats
+
+  # matriz de varianza/covarianza de los x
+  vcovx <- (n-1)/n * cov(x)
+  results$vcovx <- vcovx
+
+  # estimación
+  X      <- cbind(rep(1,n),x)                  # se necesita ajuntar la columna de unos
+  p1     <- p + 1                              # un regresor más
+  XX     <- t(X)%*% X                          # matriz X'X
+  XXm1   <- solve(XX)                          # su inversa
+  bh     <- XXm1 %*% t(X) %*% y                # estimación de los betas
+  results$bh <- bh
+
+  eta    <- X %*% bh                           # valores estimados
+  res    <- y - eta                            # residuos
+  unidad <- cbind(x,y,eta,res)                 # tabla de resultados
+  rownames(unidad) <- rownames(X)
+  colnames(unidad) <- c(nom,"eta","residuos")
+  results$unidad <- unidad
+
+  # grafico-valores-estimados-residuos
+  results$observados <- function() {
+    plot(eta,y,asp=1,xlab="estimados",ylab="observados")
+    abline(0,1,col="red")
+    text(eta,y,labels=lab,pos=2)
+    points(eta,eta,col="red")
+  }
+
+  results$residuos <- function() {
+    plot(eta,res,asp=1,xlab="estimados",ylab="residuos")
+    abline(0,0,col="red")
+    text(eta,res,labels=lab,pos=2)
+  }
+
+  # anova
+  ssr   <- t(eta) %*% eta            # suma de  cuadrados por regresión
+  sse   <- ssy - ssr                 # suma por residuos
+  msr   <- ssr/p1                    # cuadrado promedio por regresión
+  mse   <- sse/(n-p1)                # cuadrado promedio por residuos
+  df    <- c(p1,n-p1,n)              # grados de libertad
+  ssq   <- c(ssr,sse,ssy)            # sumas de cuadrados
+  msq   <- c(msr,mse,0)              # suma de residuos
+  anova <- (cbind(df,ssq,msq))       # tabla de anova
+  colnames(anova) <- c("Degrees of Freedom","Sum of squares","Mean squares")
+  rownames(anova) <- c("Regression","Residuals","Total")
+  results$anova <- anova
+
+  # apalancamiento
+  Hat   <- X %*% XXm1 %*% t(X)                  # matriz H sombrero
+  rownames(Hat) <- lab                          # inclusivo de su etiquetas
+  colnames(Hat) <- lab
+  results$Hat <- Hat
+
+  lev   <- diag(Hat)                            # apalancamientos
+  pesos <- cbind(x,y,lev)                       # construcción de una salida conjunta
+  rownames(pesos) <- lab
+  results$pesos <- pesos
+
+  niv   <- 2 * p1 / n                           # nivel para apalancamiento
+  level <- which(lev > niv)                       # unidades con fuerte apalancamiento
+  out   <- rbind(level,lev[level])              # salida
+  rownames(out) <- c("unidad","apalancamiento")
+  results$out <- out
+
+  return(results)
+}
+```
+
+```{r}
+res_Linnerud_1 <- regre(
+  Linnerud[, c("Weight", "Waist", "Pulse")],
+  Linnerud$Pulls
+)
+
+res_Linnerud_1$stats
+res_Linnerud_1$vcovx
+res_Linnerud_1$bh
+res_Linnerud_1$unidad
+res_Linnerud_1$observados()
+res_Linnerud_1$residuos()
+res_Linnerud_1$anova
+res_Linnerud_1$Hat
+res_Linnerud_1$pesos
+res_Linnerud_1$out
+```
+
+## Pregunta 5
+
+```{r}
+res_Linnerud_Squats <- regre(
+  Linnerud[, c("Squats")],
+  Linnerud$Pulls
+)
+
+res_Linnerud_Squats$stats
+res_Linnerud_Squats$vcovx
+res_Linnerud_Squats$bh
+res_Linnerud_Squats$unidad
+res_Linnerud_Squats$observados()
+res_Linnerud_Squats$residuos()
+res_Linnerud_Squats$anova
+res_Linnerud_Squats$Hat
+res_Linnerud_Squats$pesos
+res_Linnerud_Squats$out
+```
