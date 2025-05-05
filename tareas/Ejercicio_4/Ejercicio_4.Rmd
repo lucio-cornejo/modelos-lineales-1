@@ -1,0 +1,271 @@
+---
+title: "Ejercicio 4"
+author: "Lucio Cornejo"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      position: left
+    theme: united
+    highlight: tango
+    number_sections: true
+
+editor_options:
+  markdown:
+    wrap: 120
+---
+
+
+## Pregunta 3: Modelamiento
+
+```{r}
+#| label: leer-datos
+Decathlon <- read.csv("Decathlon.csv", row.names = 1)
+lab <- rownames(Decathlon)
+Decathlon
+```
+
+```{r}
+graficar_modelos <- function(modelo) {
+  res <- list()
+  res$estimados_observados <- function(mostrar_texto = FALSE) {
+    plot(modelo$fitted.values, Decathlon$Points, pch = 20, xlab = "estimados", ylab = "observados")
+    abline(0, 1, col = "red")
+
+    if (mostrar_texto) text(modelo$fitted.values, Decathlon$Points,labels=lab,pos=3,offset(0.5));
+
+    points(modelo$fitted.values, modelo$fitted.values, pch = 20, col = "red")
+  }
+
+  res$estimados_residuos <- function(mostrar_texto = FALSE) {
+    plot(modelo$fitted.values, modelo$residuals, pch = 20, xlab = "estimados", ylab = "residuos")
+    abline(0, 0, col = "red")
+
+    if (mostrar_texto) text(modelo$fitted.values, modelo$residuals, labels = lab, pos = 3, offset(0.5));
+  }
+
+  return(res)
+}
+```
+
+### Modelar con las cuatro velocidades
+
+```{r}
+#| label: modelo-velocidades
+mod_vel <- lm(
+  Points ~ X100m + X400m + X1500m + X110m.hurdle,
+  data = Decathlon
+)
+summary(mod_vel)
+
+mod_vel_graficos <- graficar_modelos(mod_vel)
+mod_vel_graficos$estimados_observados()
+mod_vel_graficos$estimados_residuos()
+```
+
+### Modelar con los tres saltos
+
+```{r}
+#| label: modelo-saltos
+mod_saltos <- lm(
+  Points ~ Long.jump + High.jump + Pole.vault,
+  data = Decathlon
+)
+summary(mod_saltos)
+
+mod_saltos_graficos <- graficar_modelos(mod_saltos)
+mod_saltos_graficos$estimados_observados()
+mod_saltos_graficos$estimados_residuos()
+```
+
+### Modelar con los tres lanzamientos
+
+```{r}
+#| label: modelo-lanzamientos
+mod_lanzamientos <- lm(
+  Points ~ Discus + Javeline + Shot.put,
+  data = Decathlon
+)
+summary(mod_lanzamientos)
+
+mod_lanzamientos_graficos <- graficar_modelos(mod_lanzamientos)
+mod_lanzamientos_graficos$estimados_observados()
+mod_lanzamientos_graficos$estimados_residuos()
+```
+
+
+## Pregunta 4: Evaluación de los modelos
+
+```{r}
+extraer_estadistica_f <- function(modelo) {
+  return(summary(modelo)$fstatistic[1])
+}
+
+obtener_p_valor_de_estadistica_f <- function(modelo) {
+  s <- summary(modelo)
+
+  fval <- s$fstatistic["value"]
+  df1 <- s$fstatistic["numdf"]
+  df2 <- s$fstatistic["dendf"]
+
+  return(pf(fval, df1, df2, lower.tail = FALSE))
+}
+
+extraer_info_t_student <- function(modelo) {
+  df <- as.data.frame(summary(modelo)$coefficients)
+  df <- df[-1, c(-1, -2)]
+
+  df$es_significativo <- df[, 2] < 0.05
+  return(df)
+}
+```
+
+### Modelo con las cuatro velocidades
+
+Estadística F: `r extraer_estadistica_f(mod_vel)`
+
+p-valor: `r obtener_p_valor_de_estadistica_f(mod_vel)`
+
+Como el p-valor es mucho menor que 0.05, rechazamos la hipótesis nula.
+Esto implica que, **en grupo** (no necesariamente individualmente), 
+el conjunto de las cuatro velocidades explica significativamente 
+la varianza asociada a la variable `Points`.
+
+
+### Modelo con las cuatro velocidades
+
+Estadística F: `r extraer_estadistica_f(mod_vel)`
+
+p-valor: `r obtener_p_valor_de_estadistica_f(mod_vel)`
+
+Como el p-valor es mucho menor que 0.05, rechazamos la hipótesis nula.
+Esto implica que, **en grupo** (no necesariamente individualmente), 
+el conjunto de las cuatro velocidades explica significativamente 
+la varianza asociada a la variable `Points`.
+
+```{r}
+extraer_info_t_student(mod_vel)
+```
+
+Note que para ninguna de las variables de velocidades podemos afirmar que 
+tiene sentido en el modelo, como variable explicativa.
+Esto pues sus p valores respectivos asociados vía el test de los $\hat{\beta_i}$
+no son menores que 0.05.
+
+### Modelo con las tres saltos
+
+Estadística F: `r extraer_estadistica_f(mod_saltos)`
+
+p-valor: `r obtener_p_valor_de_estadistica_f(mod_saltos)`
+
+Como el p-valor es mucho menor que 0.05, rechazamos la hipótesis nula.
+Esto implica que el conjunto de los tres saltos explica significativamente 
+la varianza asociada a la variable `Points`.
+
+```{r}
+extraer_info_t_student(mod_saltos)
+```
+
+Note que, entre las variables `Long.jump`, `High.jump` y `Pole.vault`,
+solo para la variable `Pole.vault` no contamos con suficiente evidencia
+para afirmar que como variable explicativa tiene sentido en el modelo.
+
+### Modelo con las tres lanzamientos
+
+Estadística F: `r extraer_estadistica_f(mod_lanzamientos)`
+
+p-valor: `r obtener_p_valor_de_estadistica_f(mod_lanzamientos)`
+
+Como el p-valor es mucho menor que 0.05, rechazamos la hipótesis nula.
+Esto implica que el conjunto de los tres lanzamientos explica significativamente 
+la varianza asociada a la variable `Points`.
+
+```{r}
+extraer_info_t_student(mod_lanzamientos)
+```
+
+Note que para ninguna de las variables de lanzamientos podemos afirmar que 
+tiene sentido en el modelo, como variable explicativa.
+Esto pues sus p valores respectivos asociados vía el test de los $\hat{\beta_i}$
+no son menores que 0.05.
+
+
+## Pregunta 5: Selección del modelo vía residuo promedio
+
+```{r}
+calcular_rse <- function(modelo) {
+  k <- length(modelo$coefficients) - 1
+  SSE <- sum(modelo$residuals**2)
+  num_obs <- length(modelo$residuals)
+
+  return(sqrt(SSE/(num_obs - (1+k))))
+}
+```
+
+```{r}
+rse_modelos <- c(
+  velocidades = calcular_rse(mod_vel),
+  saltos = calcular_rse(mod_saltos),
+  lanzamientos = calcular_rse(mod_lanzamientos)
+)
+rse_modelos
+```
+
+Considerando el residuo promedio, optaríamos por aquel modelo
+que presente un **menor** valor respectivo.
+En ese sentido particular, el mejor modelo entre los tres
+construídos es aquel cuyas varias explicativas son los tres tipos de saltos.
+
+
+## Preguntas 6 y 7: Modelos con transformaciones no triviales a los predictores
+
+```{r}
+mod_6_1 <- lm(
+  Points ~ X100m + I(Javeline^2) + I(Shot.put * X400m),
+  data = Decathlon
+)
+summary(mod_6_1)
+
+mod_6_1_graficos <- graficar_modelos(mod_6_1)
+mod_6_1_graficos$estimados_observados()
+mod_6_1_graficos$estimados_residuos()
+
+extraer_estadistica_f(mod_6_1)
+obtener_p_valor_de_estadistica_f(mod_6_1)
+extraer_info_t_student(mod_6_1)
+
+calcular_rse(mod_6_1)
+```
+
+Nótese que para **este** nuevo modelo planteado, **sí** resultan tener sentido
+(p valor menor que 0.05 para el test t-student)
+la información proporcionada por las variales `X100m` y `Javeline`,
+comparado a su utilidad en los modelos previamente analizados.
+
+
+```{r}
+mod_6_2 <- lm(
+  Points ~ I(X1500m + Discus + X1500m*Discus + log(Long.jump)),
+  data = Decathlon
+)
+summary(mod_6_2)
+
+mod_6_2_graficos <- graficar_modelos(mod_6_2)
+mod_6_2_graficos$estimados_observados()
+mod_6_2_graficos$estimados_residuos()
+
+extraer_estadistica_f(mod_6_2)
+obtener_p_valor_de_estadistica_f(mod_6_2)
+extraer_info_t_student(mod_6_2)
+
+calcular_rse(mod_6_2)
+```
+
+Nótese que en este modelo con intercepto y un solo regresor,
+los tests vía estadística F y t-student producen la misma conclusión:
+El regresor planteado/construido **no** tiene sentido como variable
+explicativa para la variable `Points`.
