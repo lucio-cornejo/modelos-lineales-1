@@ -1,0 +1,12 @@
+{
+  "hash": "56bc3a194452c59b9b6ed890eaac6589",
+  "result": {
+    "engine": "jupyter",
+    "markdown": "# Modelo Lineal General {-}\n\n## Evaluaciones\n\n- *Semana 16*: Examen escrito (**presencial**) \n- *Semana 17*: Presentación de una aplicación (de solo la segunda mitad del curso),\ncon un tiempo entre 10 y 15 minutos.\n\n## Introducción\n\n- En una regresión lineal no se modela la variable respuesta,\n**sino la esperanza de la variable respuesta**.\n\n- **Suposiciones**\n  - Errores independientes con media nula.\n  - La varianza del error es constante.\n  - Los errores se distribuyen normalmente.\n  - $\\text{Rank}(X) = k+1 = p,$ donde $k$ es el número de covariables.\n  - Además de que la relación entre $X$ e $y$ es lineal.\n\n\n## Modelo de regresión general\n\n\n\n\n\n```{latex}\n\\begin{enumerate}\n    \\item Relación lineal: $\\mathbb{E}(\\mathbf{y} | \\mathbf{X}) = \\mathbf{X} \\boldsymbol{\\beta}$\n    \\item Normalidad: $\\boldsymbol{\\epsilon}$ sigue una distribución normal multivariada\n    \\item Estructura de covarianza general: $\\text{Cov}(\\boldsymbol{\\epsilon}) = \\boldsymbol{\\Sigma}$\n\\end{enumerate}\n\n$\\boldsymbol{\\Sigma}$ captura posibles:\n\n\\begin{itemize}\n    \\item Correlaciones entre observaciones ($\\Sigma_{ij} \\ne 0$)\n    \\item Heterocedasticidad ($\\Sigma_{ii} \\ne \\Sigma_{jj}$)\n\\end{itemize}\n```\n\n",
+    "supporting": [
+      "clase-08_files"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

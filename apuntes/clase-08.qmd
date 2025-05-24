@@ -1,0 +1,64 @@
+# Modelo Lineal General {-}
+
+## Evaluaciones
+
+- *Semana 16*: Examen escrito (**presencial**) 
+- *Semana 17*: Presentación de una aplicación (de solo la segunda mitad del curso),
+con un tiempo entre 10 y 15 minutos.
+
+## Introducción
+
+- En una regresión lineal no se modela la variable respuesta,
+**sino la esperanza de la variable respuesta**.
+
+- **Suposiciones**
+  - Errores independientes con media nula.
+  - La varianza del error es constante.
+  - Los errores se distribuyen normalmente.
+  - $\text{Rank}(X) = k+1 = p,$ donde $k$ es el número de covariables.
+  - Además de que la relación entre $X$ e $y$ es lineal.
+
+
+## Modelo de regresión general
+
+
+## Supuestos clave
+
+1. Relación lineal: 
+  $\mathbb{E}(\mathbf{y} \mid \mathbf{X}) = \mathbf{X} \boldsymbol{\beta}$
+
+2. Normalidad: 
+  $\boldsymbol{\epsilon} \sim \mathcal{N}(0, \boldsymbol{\Sigma})$
+
+3. Estructura de covarianza general:  
+  $\text{Cov}(\boldsymbol{\epsilon}) = \boldsymbol{\Sigma}$
+
+
+La matriz **$\boldsymbol{\Sigma}$** captura posibles:
+
+- Correlaciones entre observaciones ($\Sigma_{ij} \ne 0$)  
+- Heterocedasticidad ($\Sigma_{ii} \ne \Sigma_{jj}$)
+
+
+## Estimador para $\beta$
+
+- Mínimos Cuadrados Generalizados (GLS). Basado en la siguiente función de pérdida:
+
+$$
+Q(\boldsymbol{\beta}) = (\mathbf{y} - \mathbf{X} \boldsymbol{\beta})^\top \boldsymbol{\Sigma}^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta})
+$$
+
+- Estimador de máxima verosimilitud. Asumiendo que
+
+$$
+\boldsymbol{\epsilon} \sim \mathcal{N}_n(\mathbf{0}, \boldsymbol{\Sigma}) \Rightarrow \mathbf{y} \sim \mathcal{N}_n(\mathbf{X} \boldsymbol{\beta}, \boldsymbol{\Sigma})
+$$
+
+
+- Resulta posible alterar el modelo lineal general, para resolverlo como si fuese un modelo lineal del tipo ya estudiado.
+Así, gracias a que la matriz $\Sigma$ es una **matriz simétrica definida positiva**, se llega a obtener
+
+$$
+\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{X})^{-1} \mathbf{X}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}
+$$
+
