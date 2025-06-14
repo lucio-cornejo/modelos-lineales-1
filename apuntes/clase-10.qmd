@@ -1,0 +1,418 @@
+# Modelo Lineal General {-}
+
+## Nota
+
+- La prueba final será a mano y usando R.
+
+## Tareas pendientes
+
+- **Fija**: Demostrar el teorema de Gauss-Markov generalizado.
+- Completar tarea de la clase pasada.
+- **Fija**: Último ejercicio antes de sección *Pruebas de heterocedasticidad y autocorrelación* del PDF de esta clase (*Considere el modelo de regresión lineal simple ...*). Lo más importante en este ejercicio es la interpretación de los 
+resultados.
+
+## Modelo con estructura AR(1)
+
+- Los errores tienen la **misma variabilidad**, pero **están correlacionados**,
+también de manera **constante**.
+
+Un modelo lineal general con errores AR(1), se caracteriza por
+
+::: {.callout-note}
+### Modelo con estructura AR(1)
+
+$$
+\Sigma = \sigma^2 \mathbf{V} = \frac{\sigma^2}{1 - \rho^2} 
+\begin{pmatrix}
+1 & \rho & \rho^2 & \cdots & \rho^{n-1} \\
+\rho & 1 & \rho & \cdots & \rho^{n-2} \\
+\rho^2 & \rho & 1 & \cdots & \rho^{n-3} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\rho^{n-1} & \rho^{n-2} & \rho^{n-3} & \cdots & 1
+\end{pmatrix}
+$$
+
+- $\rho = \text{Corr}(\varepsilon_i, \varepsilon_{i-1})$, $\varepsilon_i = \rho\varepsilon_{i-1} + u_i$, $u_i \sim N(0, \sigma^2)$
+- El $u_i$ es un efecto aleatorio no observable.
+
+- $\text{Var}(\varepsilon_i) = \sigma_\varepsilon^2 = \frac{\sigma^2}{1 - \rho^2}$. 
+
+- Además, $\text{Cov}(\varepsilon_i, \varepsilon_j) = \rho^{|i-j|}\sigma_\varepsilon^2$
+
+:::
+
+En ese sentido, entre observaciones distantes, es natural suponer que la correlación es **prácticamente cero**,
+por lo cual la covarianza entre observaciones distantes es también casi cero.
+
+- En caso se cumple que **$\boldsymbol{\rho}$ sea casi cero**, sería una buena evidencia para
+concluir que se puede emplear un modelo homocedástico.
+
+- **Idea de verosimilitud**: ¿Cuál debe ser el valor del parámetro, tal para que se haga más posible tal valor del parámetro, dados los datos?
+
+
+### Algoritmo FGLS para AR(1)
+
+- Es el algoritmo más utilizado para AR(1), pero existen otros más sofisticados, que requieren menor tiempo computacional.
+
+
+::: {.callout-note}
+### Algoritmo FGLS
+
+1. Calcular estimador inicial: $\hat{\boldsymbol{\beta}}^{(0)} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y} \Rightarrow \hat{\boldsymbol{\varepsilon}}^{(0)} = \mathbf{y} - \mathbf{X}\hat{\boldsymbol{\beta}}^{(0)}$
+
+2. Estimar $\rho$ mediante:
+
+$$
+  \hat{\rho} = \frac{\sum_{t=2}^n \hat{\varepsilon}_t \hat{\varepsilon}_{t-1}}{\sum_{t=1}^n \hat{\varepsilon}_t^2}
+$$
+
+3. Construir $\hat{\mathbf{V}}$ con $\hat{\rho}$
+
+4. Re-estimar $\boldsymbol{\beta}$:
+
+$$
+  \hat{\boldsymbol{\beta}}^{(1)} = (\mathbf{X}^\top\hat{\mathbf{V}}^{-1}\mathbf{X})^{-1}\mathbf{X}^\top\hat{\mathbf{V}}^{-1}\mathbf{y}
+$$
+
+5. Iterar hasta convergencia
+
+:::
+
+- **Nota sobre convergencia**: El hecho que la distribución normal solo tenga un óptimo local, y que resulte en un óptimo global,
+garantiza que este algoritmo converja al óptimo global que buscamos.
+
+
+## Modelo con varianza ponderada
+
+Consideremos el modelo lineal general:
+
+$$
+\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\varepsilon}, \quad \boldsymbol{\varepsilon} \sim \mathcal{N}_n(0, \boldsymbol{\Sigma})
+$$
+
+::: {.callout-note}
+### WLS, modelo con varianza ponderada
+
+Un modelo lineal general con varianza ponderada, se caracteriza porque $\boldsymbol{\Sigma}$ tiene la forma:
+
+$$
+\boldsymbol{\Sigma} = \sigma^2 \mathbf{W}^{-1}
+$$
+
+donde $\mathbf{W} = \operatorname{diag}(w_1, w_2, \ldots, w_n)$ es una matriz diagonal conocida o estimable. En este caso:
+
+$$
+\operatorname{Var}(\varepsilon_i) = \frac{\sigma^2}{w_i}, \quad i = 1, \ldots, n
+$$
+:::
+
+- El estimador $\beta$ es insesgado y eficiente bajo el teorema de Gauss-Markov generalizado.
+
+**Estimación de Pesos (𝐖)** Existen tres métodos principales:
+
+| Método                  | Fórmula                                       |
+|------------------------|-----------------------------------------------|
+| Información externa     | $w_i = n_i$ (para datos agrupados)           |
+| Residuos al cuadrado    | $w_i = 1/\hat{\varepsilon}_i^2$              |
+| Modelado de varianza    | $w_i = 1/\operatorname{Var}(\varepsilon_i \mid \mathbf{x}_i)$ |
+
+
+## Ejercicios y aplicación de AR(1) y WLS
+
+```{r}
+library(nlme)
+data(Orange)
+```
+
+### Modelo WLS (varPower)
+
+- `varPower` explanation:
+  - $\epsilon_i \sim N(0, \sigma^2 v_i^2);\; v_i = |x_i|^{\delta}$
+  - $V(\epsilon_i) = \sigma^2 |\text{age}_i|^{2\delta}$
+
+
+```{r}
+modelo1_wls <- gls(
+  circumference ~ age,
+  data = Orange,
+  weights = varPower(form = ~ age),
+  method = "ML"
+)
+modelo1_wls
+```
+
+### Modelo WLS (varPower) por tipo de árbol
+
+- `varPower` explanation:
+  - $\epsilon_i \sim N(0, \sigma^2 v_i^2)$
+  - $V(\epsilon_{ij}) = \sigma^2 |\text{age}_i|^{2\delta_{j}}$
+
+```{r}
+modelo2_wls <- gls(
+  circumference ~ age,
+  data = Orange,
+  weights = varPower(form = ~ age|Tree),
+  method = "ML"
+)
+modelo2_wls
+```
+
+### Modelo AR(1)
+
+- `corAR1` explanation:
+  - $\text{cov}(\epsilon_i, \epsilon_{j}) = \sigma_{\epsilon}^2 \rho^{|i-j|}$
+  - $\text{var}(\epsilon_i) = \sigma_{\epsilon}^2 = \frac{\sigma^2}{1- \sigma^2}$
+
+
+```{r}
+modelo1_ar1 <- gls(
+  circumference ~ age,
+  data = Orange,
+  correlation = corAR1(form = ~ 1),
+  method = "ML"
+)
+modelo1_ar1
+```
+
+### Modelo AR(1) por tipo de árbol
+
+- `corAR1` explanation:
+  - $\text{var}(\epsilon_{ij}) = \sigma_{\epsilon_j}^2 = \frac{\sigma}{1 - \rho_j^2}$
+
+```{r}
+modelo2_ar1 <- gls(
+  circumference ~ age,
+  data = Orange,
+  correlation = corAR1(form = ~ 1 | Tree),
+  method = "ML"
+)
+modelo2_ar1
+summary(modelo2_ar1)
+```
+
+### Comparación con MCO
+
+```{r}
+modelo_mco <- lm(circumference ~ age, data = Orange, method = "ML")
+anova(modelo_mco, modelo1_wls)
+anova(modelo_mco, modelo1_ar1)
+```
+
+## Pruebas de heterocedasticidad y autocorrelación
+
+- **Modelo hetecedástico significa que depende de la observación**.
+
+### Prueba de Breusch-Pagan (homocedasticidad)
+
+- Negar la hipótesis nula implica afirmar, con cierto grado de confianza,
+que la **varianza no es constante entre las observaciones**.
+
+::: {.callout-note}
+### Algoritmo
+
+1. Estimar el modelo por MCO y obtener los residuos $\hat{\varepsilon}_i$.
+
+2. Calcular los residuos al cuadrado: $\hat{u}_i = \hat{\varepsilon}_i^2$.
+
+3. Ajustar la siguiente regresión auxiliar: $\hat{u}_i = \alpha_0 + \alpha_1 x_{i1} + \cdots + \alpha_k x_{ik} + v_i$, y calcular el coeficiente de determinación $R^2$ de dicha regresión.
+
+4. Calcular el estadístico de prueba de Breusch-Pagan:
+
+$$
+\text{BP} = nR^2 \xrightarrow{D} \chi_k^2 \qquad (1)
+$$
+
+Se rechaza la hipótesis nula de homocedasticidad si:
+
+$$
+\text{BP} > \chi_{k,1-\alpha}^2
+$$
+:::
+
+
+### Prueba de Durbin-Watson (autocorrelación)
+
+$$
+y_i = \beta_0 + \beta_1 x_{i1} + \cdots + \beta_k x_{ik} + \varepsilon_i, \quad i = 1, \ldots, n,
+$$
+
+donde se asume que los errores $\varepsilon_i$ son no correlacionados y con media cero: $\mathbb{E}[\varepsilon_i] = 0$ y $\text{Cov}(\varepsilon_i, \varepsilon_j) = 0$ para $i \neq j$.
+
+- $H_0: \rho = 0$ o equivale a decir $\text{Cov}(\varepsilon_i, \varepsilon_{i-1}) = 0$ $\forall i$
+
+- $H_1: \rho \neq 0$ (o bien $\rho > 0$ si se sospecha autocorrelación positiva)
+
+Sea $\hat{\varepsilon}_i$ el residuo del modelo estimado por mínimos cuadrados ordinarios.
+
+$$
+DW = \frac{\sum_{i=2}^n (\hat{\varepsilon}_i - \hat{\varepsilon}_{i-1})^2}{\sum_{i=1}^n \hat{\varepsilon}_i^2}. \qquad (2)
+$$
+
+El valor del estadístico $DW$ se encuentra en el intervalo $[0, 4]$, con la siguiente interpretación:
+
+- $DW \approx 2$: no hay autocorrelación.
+
+- $DW < 2$: indicio de autocorrelación positiva.
+
+- $DW > 2$: indicio de autocorrelación negativa.
+
+Se compara el valor observado de $DW$ con los valores críticos $d_L$ (límite inferior) y $d_U$ (límite superior), determinados por tablas específicas según $n$ y $k$.
+
+| Condición sobre $DW$                    | Conclusión                                |
+|----------------------------------------|-------------------------------------------|
+| $DW < d_L$                              | Hay evidencia de autocorrelación positiva |
+| $d_L \leq DW \leq d_U$                  | Resultado inconcluso                      |
+| $d_U < DW < 4 - d_U$                    | No hay evidencia de autocorrelación       |
+| $4 - d_U \leq DW \leq 4 - d_L$          | Resultado inconcluso                      |
+| $DW > 4 - d_L$                          | Hay evidencia de autocorrelación negativa |
+
+: Regla de decisión para el estadístico de Durbin-Watson
+
+## Ejercicio y aplicación
+
+```{r}
+library(lmtest)
+data(cars)
+
+plot(
+  cars$speed,
+  cars$dist,
+  xlab = "Velocidad (mph)",
+  ylab = "Distancia de frenado (ft)",
+  pch = 16,
+  col = "blue"
+)
+```
+
+### Modelo clásico MCO
+
+```{r}
+modelo1_ols <- lm(dist ~ speed, data = cars)
+summary(modelo1_ols)
+```
+
+```{r}
+y <- resid(modelo1_ols)**2
+x <- cars$speed
+mod0 <- lm(y ~ x)
+n <- length(y)
+BP <- n*summary(mod0)$r.squared
+alpha <- 0.05
+
+# X_1-alpha,k
+qchi <- qchisq(1-alpha, 1) 
+
+# Se rechaza si
+(BP > qchi)
+```
+
+```{r}
+bptest(modelo1_ols)
+```
+
+- **Interpretación**: No existe evidencia suficiente para rechazar la hipótesis de
+homocedasticidad para este conjunto de datos. En ese sentido, ajustar los datos
+a un modelo heterocedástico no resultaría conveniente.
+
+```{r}
+data(Orange)
+plot(
+  Orange$age, Orange$circumference,
+  xlab = "Edad del árbol",
+  ylab = "Circunferencia",
+  pch = 16,
+  col = "blue"
+)
+
+## Modelo clasico MCO para Datos 2
+modelo2_ols <- lm(circumference ~ age, data = Orange)
+summary(modelo2_ols)
+
+## test de Breusch-Pagan para Datos 1
+library(lmtest)
+bptest(modelo2_ols)
+```
+
+- **Interpretación**: Existe suficiente evidencia para concluir que resulta
+una mejor opción emplear modelos heterocedásticos para este conjunto de datos.
+
+```{r}
+modelo1_wls <- gls(
+  circumference ~ age,
+  data = Orange,
+  weights = varPower(form = ~ age),
+  method = "ML"
+)
+
+#Visualización de los modelos
+plot(
+  Orange$age,
+  Orange$circumference,
+  xlab = "Edad del árbol",
+  ylab = "Circunferencia",
+  pch = 16, 
+  col = "blue"
+)
+legend("topleft", legend = c("MCO", "GLS WLS"), col = c("red", "darkgreen"), lwd = 2)
+
+# Línea MCO
+abline(modelo2_ols, col = "red", lwd = 2)
+# Línea GLS
+lines(Orange$age, predict(modelo1_wls), col = "darkgreen", lwd = 2)  
+```
+
+### Prueba de autocorrelación
+
+**Si hay picos en lag=0 y lag=1, AR(1) es plausible.**
+
+```{r}
+modelo1_ols <- lm(dist ~ speed, data = cars)
+acf(residuals(modelo1_ols)) 
+```
+
+**Si hay picos a partir de lag=1**, es posible exista evidencia de autocorrelación.
+
+```{r}
+lmtest::dwtest(modelo1_ols)
+```
+
+**Interpretación**: No hay suficiente evidencia para afirmar que no hay autocorrelación.
+
+```{r}
+data(Orange)
+modelo2_ols <- lm(circumference ~ age, data = Orange)
+summary(modelo2_ols)
+acf(residuals(modelo2_ols))
+
+library(lmtest)
+lmtest::dwtest(modelo2_ols)
+```
+
+**Interpretación**: Hay suficiente evidencia para afirmar que existe autocorrelación.
+
+```{r}
+# Modelo AR(1)
+modelo1_ar1 <- gls(
+  circumference ~ age,
+  data = Orange,
+  correlation = corAR1(form = ~ 1),
+  method = "ML"
+)
+
+#Visualización de los modelos
+plot(
+  Orange$age, Orange$circumference, 
+  xlab = "Edad del árbol",
+  ylab = "Circunferencia",
+  pch = 16, col = "blue"
+)
+legend("topleft", legend = c("MCO", "GLS AR1"), col = c("red", "darkgreen"), lwd = 2)
+
+# Línea MCO
+abline(modelo2_ols, col = "red", lwd = 2)          
+# Línea GLS
+lines(Orange$age, predict(modelo1_ar1), col = "darkgreen", lwd = 2)  
+```
+
+
+*end of class*
