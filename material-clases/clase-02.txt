@@ -1,0 +1,100 @@
+#########################################################################################
+# Lectura de los datos
+#setwd(<aquí ponen el nombre de la carpeta donde tienen sus datos)
+SudAmerica<-read.csv("SudAmerica.csv",row.names=1) # lectura del archivo eventualmente read.table con sus opciones
+Tajo_urbano
+
+attach(SudAmerica)                          # archivo en uso
+lab <- rownames(SudAmerica)                 # etiquetas de las unidades en lab
+detach(SudAmerica)
+########################################################################################
+# regresión a mano
+# definición de los datos para el modelo
+n <- dim(SudAmerica)[1]; n                  # n es el número de observaciones
+x <- SudAmerica[,1]; x                      # x es el caracter descriptivo
+y <- SudAmerica[,2]; y                      # y es el caracter respuesta
+nom <- colnames(SudAmerica)                 # etiquetas de las variables en nom
+# estadísticas
+xm <-sum(x)/n; xm                           # cálculo de xm, promedio de x
+ym <-sum(y)/n; ym                           # cálculo de ym, promedio de y
+ssx <- sum(x^2); ssx                        # ssx es la suma de los x cuadros
+ssy <- sum(y^2); ssy                        # ssy es la suma de los y cuadros
+sxy <- sum(x*y); sxy                        # sxy es la suma de los productos xy
+ssxc <- ssx-n*xm^2 ; ssxc                   # ssxc es ssx centrado sobre el promedio
+ssyc <- ssy-n*ym^2 ; ssyc                   # ssyc es ssy centrado sobre el promedio
+sxyc <- sxy-n*xm*ym; sxyc                   # sxyc es sxy centrado sobre el promedio
+varx <- ssxc/n; varx                        # varx es la varianza de x
+vary <- ssyc/n; vary                        # vary es la varianza de y
+covxy <- sxyc/n; covxy                      # covxy es la covarianza de xy
+
+stats = matrix(24*0,nrow=8,ncol=3)          # construcción de tabla de estadísticas
+rownames(stats) = c("Mínimo","Máximo","Promedio","Total","Suma de cuadrados",
+                    "Cuadrados centrados","Varianza covarianza","Desvío estándar")
+colnames(stats) = c(nom,"xy")
+  stats[,1] = rbind(min(x),max(x),xm,sum(x),ssx,ssxc,varx,sqrt(varx))
+  stats[,2] = rbind(min(y),max(y),ym,sum(y),ssy,ssyc,vary,sqrt(vary))
+  stats[,3] = rbind(0,0,0,0,sxy,sxyc,covxy,0)
+  stats                                     # impresión de la tabla
+# estimación
+bh <- sxyc/ssxc ; bh                        # bh es la estimación de beta
+ah <- ym - bh*xm ; ah                       # ah es la estimación de alfa
+paste("IDH = ",ah," + ",bh," * Tajo Urbano",sep="" )
+eta = ah + bh * x; eta                      # valores estimados
+res = y - eta; res                          # residuos
+respc = res/y
+unidad = cbind(x,y,eta,res,respc)                 # tabla de resultados
+rownames(unidad) = lab
+colnames(unidad) = c(nom,"eta","residuos","%res")
+unidad                                      # impresión de la tabla
+###########################################################################
+# gráfico clásico
+plot(x,y,xlab="Tajo_Urbano",ylab="IDH")
+text(x,y,labels=lab, cex = 0.5, pos=3)
+points(x,eta,col="red")
+abline(ah,bh,col="red")
+
+# gráficos de valores estimados y residuos
+plot(eta,y,asp=1,xlab="IDH estimados",ylab="IDH")
+abline(0,1,col="red")
+text(eta,y,labels=lab, cex = 0.5, pos=3)
+
+plot(eta,res,asp=1,xlab="IDH estimados",ylab="residuos")
+abline(0,0,col="red")
+text(eta,res,labels=lab, cex = 0.5, pos=3)
+#####################################################################################
+# regresion sin intercepta
+b0 = sxy/ssx; b0                            # estimación de beta
+etaxm = b0*xm; etaxm                        # estimación al promedio de x
+ym                                          # promedio de y
+etam = mean(b0*x); etam                     # promedio de eta
+Se = sum(y-b0*x); Se                        # suma de los desvíos
+Se/n                                        # desvío promedio
+ym-etam                                     # differencia de promedios
+# gráfico clásico
+plot(x,y,xlab="Tajo_Urbano",ylab="IDH")
+text(x,y,labels=lab, cex = 0.5, pos=3)# identify(x,y,labels=lab,cex=0.8)
+points(x,eta,col="red")
+abline(ah,bh,col="red")
+abline(0,b0,col="blue")
+#####################################################################################
+# apalancamiento
+w <- (x-xm)^2 / ssxc ; w                    # w pesos de los pendientes
+b <- (y-ym)/(x-xm) ; b                      # pendientes
+bh2 <- t(w)%*%b ; bh2                       # determinación alternativa de bh
+c <- (x-xm) / ssxc ; c                      # coeficientes de beta según y
+bh3 <-  t(c)%*%y ; bh3                      # determinación alternativa de bh
+Hs <- matrix(0,n,n)                         # definición de H sombrero y su construcción
+rownames(Hs)= lab                           # inclusivo de su etiquetas
+colnames(Hs)=lab
+for (i in 1:n) {
+  for (j in 1:n) {
+    Hs[i,j] <- 1 / n + c[j] * (x[i] - xm)
+  }
+} ; Hs
+sum(Hs)                                     # Hs es centrada
+lev <- diag(Hs); lev                        # apalancamientos
+lev  <- 1/n + w; lev
+pesos <- cbind(x,w,b,y,c,lev)               # construcción de una salida conjunta
+rownames(pesos) <- lab
+pesos                                       # salida
+#########################################################################################
