@@ -1,0 +1,497 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{5}
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Trabajo final},
+  pdfauthor={Lucio Enrique Cornejo Ramírez},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Trabajo final}
+\author{Lucio Enrique Cornejo Ramírez}
+\date{2025-06-16}
+
+\begin{document}
+\maketitle
+
+\renewcommand*\contentsname{Table of contents}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+
+\section{Introducción}\label{introducciuxf3n}
+
+\subsection{Marco del problema}\label{marco-del-problema}
+
+Entre los costos que más desastibilizan económicamente a las personas,
+se encuentra el pago por procedimientos médicos. Estos precios pueden
+variar en gran medida dependiendo de características del paciente, como
+detallaremos más adelante.
+
+En ese sentido, resulta de gran valor predecir adecuadamente el costo
+que un seguro médico cubrirá, respecto a un procedimiento médico. Para
+un paciente, aquella predicción puede servir para que planifique qué
+tanto sería desestabilizado económicamente debido a algún tipo de
+procedimiento particular. Por otro lado, también para las aseguradoras
+resulta útil aquellas predicciones, ya que pueden anticipar qué tanto
+dinero estarían perdiendo por el monto a cubrir de la operación; además,
+con ese conocimiento pueden monitorear mejor qué pedidos de cobertura
+resultan anómalos, potencialmente fraudulentos.
+
+\subsection{Plan de modelamiento}\label{plan-de-modelamiento}
+
+Anteriormente, hemos planteado como variable por predecir a la cantidad
+monetaria \(S\) que la aseguradora de un paciente cubrirá debido a un
+procedimiento médico. Note que, fijando el precio \(P\) de un
+procedimiento médico, tal predicción equivale a predecir la cantidad
+\(P - S\) que llegaría a pagar el paciente, habiendo descontado lo que
+cubre su aseguradora.
+
+En ese sentido, el \textbf{carácter por modelar} es aquella variable
+aleatoria \(P - S\), monto que paga un paciente por un tratamiento
+médico, tras aplicarse el descuento de su aseguradora.
+
+Para el modelamiento, se considerará los gastos del hospital debido al
+procedimiento médico, además de las siguientes características del
+paciente:
+
+\begin{itemize}
+\tightlist
+\item
+  Sexo.
+\item
+  Si fuma o no.
+\item
+  Región de la que provee.
+\item
+  Edad.
+\item
+  Índice de masa corporal.
+\item
+  Cantidad de hijos e hijas.
+\item
+  Costo médico que pagaría en caso no se aplicase seguro médico.
+\item
+  Número de procedimientos pasados.
+\item
+  Número de pasos que realizó en cierto día.
+\item
+  Número de veces que ha sido hospitalizado.
+\item
+  Salario anual.
+\end{itemize}
+
+\subsection{Datos/Observaciones}\label{datosobservaciones}
+
+Las observaciones que consideraremos para este proyecto fueron
+descargadas de este sitio
+\href{https://www.kaggle.com/datasets/shubhamsingh57/ml-model-practice-linear-regression/data}{web}.
+
+Estos datos son de distintos pacientes que recibieron algún tipo de
+tratamiento médico, de los cuales se tienen variables recopiladas, como
+edad, sexo, si fuma o no, etc. Así, descartamos que los datos consistan
+de una serie de tiempo.
+
+No obstante, aquella página web no provee información más específica
+sobre el origen de los datos. Por ejemplo, si han sido recopilados en un
+único hospital, o en diversos hospitales, pero de qué país, etc.
+
+Aún así, en esta investigación, no solo se considera la predicción de la
+variable mencionada, sino también cómo es que influyen las variables que
+emplearemos como regresores, en la predicción final. Por ejemplo, si su
+relación es directa o inversamente proporcional.
+
+A continuación justificamos el posible uso de los caracteres presentes
+en los datos, como covariables:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Sexo}: Debido al riesgo y costos distintos entre hombres y
+  mujeres, para ciertos tipos de operaciones; por ejemplo, parto.
+\item
+  \textbf{Si fuma o no}: Pues fumar aumenta la probabilidad de
+  desarrollar complicaciones médicas
+\item
+  \textbf{Región de la que provee}: Ya que el costo de un procedimiento
+  médico puede variar mucho por región, así que también varía cuánto
+  cubriría una aseguradora.
+\item
+  \textbf{Edad}: Puesto que pacientes mayores suelen requerir más
+  cuidados.
+\item
+  \textbf{Índice de masa corporal}: En base a que un IMC elevado está
+  asociado a mayores riesgos durante cirugías.
+\item
+  \textbf{Cantidad de hijos e hijas}: Esto puede influir en el tipo de
+  cobertura familiar (de seguro) que tiene el paciente.
+\item
+  \textbf{Costo médico que pagaría en caso no se aplicase seguro
+  médico}: Importante incluirlo, pues incluso se espera que presente una
+  fuerte correlación positiva con la variable por predecir.
+\item
+  \textbf{Número de procedimientos pasados}: Puede resultar útil en base
+  a que pacientes con muchos procedimientos suelen tener enfermedades
+  crónicas, por lo que se esperaría una mayor cobertura.
+\item
+  \textbf{Número de pasos que realizó en cierto día}: Esta variable
+  tampoco se explica en la fuente, pero la podemos considerar como una
+  medida de la condición física de una persona, qué tan activa es.
+\item
+  \textbf{Número de veces que ha sido hospitalizado}: Pues más
+  hospitalizaciones implican mayor riesgo en la operación, aumentando
+  posiblemente así los costos que cubre la aseguradora.
+\item
+  \textbf{Salario anual}: Como indicador de nivel socioeconómico, se
+  espera que pacientes con ingresos altos cuenten con aseguradoras que
+  cubren mayor parte el costo por intervención médica.
+\end{itemize}
+
+\subsection{Itinerario metodológico de la
+modelización}\label{itinerario-metodoluxf3gico-de-la-modelizaciuxf3n}
+
+A continuación, describrimos los pasos a seguir para la construcción de
+diferentes modelos de predicción:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  hola
+\item
+  hola
+\end{enumerate}
+
+\section{Materiales y métodos}\label{materiales-y-muxe9todos}
+
+\subsection{Descripción genérica de los
+datos}\label{descripciuxf3n-genuxe9rica-de-los-datos}
+
+\section{Estructura de los datos}\label{estructura-de-los-datos}
+
+A continuación, mostramos los datos descargados del sitio web mencionado
+en la sección previa.
+
+\subsection{Variables iniciales}\label{variables-iniciales}
+
+\begin{itemize}
+\tightlist
+\item
+  Variables \textbf{cualitativas}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{sex}: Sexo.
+  \item
+    \texttt{smoker}: Si el paciente fuma o no.
+  \item
+    \texttt{region}: Región de la que provee el paciente.
+  \end{itemize}
+\item
+  Variables \textbf{cuantitativas}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{age}: Edad.
+  \item
+    \texttt{bmi}: Índice de masa corporal.
+  \item
+    \texttt{children}: Cantidad de hijos e hijas.
+  \item
+    \texttt{Claim\_Amount}: Costo médico que el paciente pagaría en caso
+    no se aplicase seguro médico.
+  \item
+    \texttt{past\_consultations}: Número de procedimientos pasados del
+    paciente.
+  \item
+    \texttt{num\_of\_steps}: Número de pasos que realizó el paciente en
+    cierto día.
+  \item
+    \texttt{Hospital\_expenditure}: Gastos del hospital debido al
+    procedimiento médico.
+  \item
+    \texttt{Number\_of\_past\_hospitalizations}: Número de veces que el
+    paciente ha sido hospitalizado.
+  \item
+    \texttt{Anual\_Salary}: Salario anual.
+  \item
+    \texttt{charges}: \textbf{Pago final} que el paciente realizó por el
+    procedimiento médico, tras haberse descontado el monto que cubre el
+    seguro médico.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Carácter respuesta}: \texttt{charges}
+
+Debido a la limitación, para esta investigación, de máximo 10 variables,
+además de solo una o dos variables cualitativas, ignoraremos algunas
+variables para este trabajo.
+
+\subsection{Filtro de variables}\label{filtro-de-variables}
+
+Para el filtro de variables categóricas, descartaremos aquella para la
+cual las distribuciones de la variable respuesta, respecto a los valores
+de aquella variable categórica sean relativamente similares.
+
+\subsubsection{\texorpdfstring{Variable cualitativa
+\texttt{region}}{Variable cualitativa region}}\label{variable-cualitativa-region}
+
+Inspeccionamos la distribución de la variable respuesta, respecto a los
+valores de la variable categórica \texttt{region}.
+
+En base a que aquellas funciones densidad no presentan una difencia
+resaltante, descartaremos la variable \texttt{region}. De esa manera,
+las variables cualitativas que emplearemos para esta investigación son
+solo \texttt{sex} y \texttt{smoker}.
+
+Por otro lado, en el caso de las variables cuantitativas, primero
+inspeccionamos la correlación entre aquellas. Esto para descartar alguna
+de las variables que presente (de ser el caso) alta correlación lineal
+con otra variable cuantitativa.
+
+A continuación, presentamos un heatmap de aquella matriz de
+correlaciones:
+
+Observamos una alta correlación entre \texttt{Anual\_Salary} y
+\texttt{Hospital\_expenditure}, con un valor de 0.9692177. Asimismo,
+como la variable de salario anual es más sencilla de recopilar (por
+ejemplo, en una encuesta) que la de gasto de hospital, descartamos la
+variable cuantitativa \texttt{Hospital\_expenditure}.
+
+\subsubsection{\texorpdfstring{Variable cuantitativa
+\texttt{num\_of\_steps}}{Variable cuantitativa num\_of\_steps}}\label{variable-cuantitativa-num_of_steps}
+
+Inicialmente se consideró descartar la variable referente al número de
+pasos que realizó el paciente en cierto día. Esto pues, a primera vista,
+no se esperaría que tal información resulte relevante para el costo
+final por el procedimiento médico.
+
+Graficamos tal posible regreso contra la variable respuesta:
+
+En base a que la relación parece asemejarse a una exponencial,
+graficamos la variable \texttt{num\_of\_steps} contra el logaritmo de la
+variable respuesta:
+
+En base a que aquella relación parece ser \emph{aproximadamente} lineal,
+optamos por no descartar la variable cuantitativa
+\texttt{num\_of\_steps}.
+
+\subsubsection{\texorpdfstring{Variable cuantitativa
+\texttt{num\_of\_steps}}{Variable cuantitativa num\_of\_steps}}\label{variable-cuantitativa-num_of_steps-1}
+
+\subsubsection{\texorpdfstring{Variable cuantitativa
+\texttt{age}}{Variable cuantitativa age}}\label{variable-cuantitativa-age}
+
+\subsubsection{\texorpdfstring{Variable cuantitativa
+\texttt{bmi}}{Variable cuantitativa bmi}}\label{variable-cuantitativa-bmi}
+
+\subsubsection{\texorpdfstring{Variable cuantitativa
+\texttt{children}}{Variable cuantitativa children}}\label{variable-cuantitativa-children}
+
+\subsubsection{\texorpdfstring{Variable cuantitativa
+\texttt{past\_consultations}}{Variable cuantitativa past\_consultations}}\label{variable-cuantitativa-past_consultations}
+
+Descartamos la variable cuantitativa \texttt{children}, pues, en base a
+este simple análisis inicial, no parece indicar algún de tipo de
+relación lineal con la variable por predecir. Es más, su gráfico de
+dispersión parece sugerir que consideremos a la variable
+\texttt{children} como cualitativa.
+
+\subsection{Variables finales}\label{variables-finales}
+
+\begin{itemize}
+\tightlist
+\item
+  Variables cualitativas:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{sex}
+  \item
+    \texttt{smoker}
+  \end{itemize}
+\item
+  Variables cuantitativas:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{age}
+  \item
+    \texttt{bmi}
+  \item
+    \texttt{Claim\_Amount}
+  \item
+    \texttt{past\_consultations}
+  \item
+    \texttt{num\_of\_steps}
+  \item
+    \texttt{Number\_of\_past\_hospitalizations}
+  \item
+    \texttt{Anual\_Salary}
+  \item
+    \texttt{charges} (\textbf{variable respuesta})
+  \end{itemize}
+\end{itemize}
+
+\section{Base de datos}\label{base-de-datos}
+
+La base de datos consiste de 1338 observaciones. Si eliminamos filas que
+posean algún dato vacío, se tienen 1287 observaciones.
+
+Para limitarnos a 500 filas, realizaremos un muestreo:
+
+
+
+
+\end{document}

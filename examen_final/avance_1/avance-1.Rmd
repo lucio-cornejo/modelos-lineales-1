@@ -27,30 +27,6 @@ knitr:
 ---
 
 
-<!-- ---
-title: "Examen final: Avance 1"
-author: "Lucio Cornejo"
-date: today
-format: 
-  html:
-    toc: true
-    toc-depth: 3
-    toc-location: left
-    theme: united
-    highlight-style: tango
-    toc-float: 
-      collapsed: false
-      smooth-scroll: true
-
-execute: 
-  cache: true
-
-editor:
-  markdown:
-    wrap: 120
---- -->
-
-
 ## Descripción
 
 Los datos fueron descargados de este sitio [web](https://www.kaggle.com/datasets/shubhamsingh57/ml-model-practice-linear-regression/data).
