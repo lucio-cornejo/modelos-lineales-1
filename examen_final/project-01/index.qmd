@@ -760,8 +760,8 @@ shapiro.test(rstandard(mod_com_2))
 ```
 
 Por otro lado, el p-valor asociado al Test de Shapiro **aumentó significativamente**,
-de $1.01e-05$ a $0.0379$. Este último valor es cercano a 0.05, aunque aún menor, por lo
-cual se sigue evidenciando la normalidad de los residuos tras haber removido aquellos puntos aberrantes.
+de $1.01*10^{-5}$ a $0.0379$. Este último valor es cercano a 0.05, aunque aún menor, por lo
+cual se sigue evidenciando la **no normalidad** de los residuos tras haber removido aquellos puntos aberrantes.
 
 En base a estas comparaciones, el modelo tras haber removido los puntos aberrantes resulta
 **mejor** que el modelo inicialmente construido.
