@@ -156,7 +156,7 @@ datos <- readr::read_csv("./new_insurance_data.csv")
 dplyr::glimpse(datos)
 ```
 
-Descartamos las observaciones con alguna variable faltante
+Descartamos las observaciones con alguna variable faltante.
 
 ```{r}
 # Cantidad de observaciones
@@ -379,9 +379,7 @@ en base a este simple análisis inicial, no parece indicar algún de tipo de
 relación lineal con la variable por predecir. Es más, su gráfico de dispersión
 parece sugerir que consideremos a la variable `children` como cualitativa.
 
-
-
-### Variables categóricas
+#### Variables categóricas
 
 Para el filtro de variables categóricas, descartaremos aquella para la
 cual las distribuciones de la variable respuesta, respecto a los valores
@@ -408,9 +406,7 @@ En base a que aquellas funciones densidad no presentan una difencia resaltante,
 descartaremos la variable `region`.
 De esa manera, las variables cualitativas que emplearemos para esta investigación son solo `sex` y `smoker`.
 
-
-
-### Variables finales
+#### Variables finales
 
 - Variables cualitativas: 
     - `sex`
@@ -426,16 +422,11 @@ De esa manera, las variables cualitativas que emplearemos para esta investigaci�
     - `Anual_Salary`
     - `charges` (**variable respuesta**)
 
-#### Base de datos
 
-La base de datos consiste de `r nrow(datos)` observaciones.
-Si eliminamos filas que posean algún dato vacío, se tienen
-`r nrow(datos)` observaciones.
-
-Para limitarnos a 500 filas, realizaremos un muestreo:
+Para limitarnos a 500 filas, según la restricción de este proyecto, realizaremos un muestreo:
 
 ```{r}
-datos_finales <- datos |>
+obs <- datos |>
   dplyr::select(
     sex,
     smoker,
@@ -449,13 +440,331 @@ datos_finales <- datos |>
     charges
   )
 
-
 set.seed(1234)
-datos_finales <- dplyr::sample_n(datos_finales, 500)
+obs <- dplyr::sample_n(obs, 500)
 
-openxlsx::write.xlsx(datos_finales, './datos.xlsx')
+openxlsx::write.xlsx(obs, './datos.xlsx')
 ```
 
+### Modelamiento
+
+Note que los tipos de datos de las covariables son adecuadas.
+En particular, las funciones por emplear se encargarán de la conversión
+numérica a las covariables categóricas `age` y `sex`.
+
+```{r}
+dplyr::glimpse(obs)
+```
+
+Comencemos definiendo algunas funciones auxliares 
+en el análisis y modelamiento.
+
+```{r}
+sum.lm <- function(lmod) {
+  summ <- summary(lmod)
+  ci <- confint(lmod)
+  summ$coefficients <- cbind(
+    summ$coefficients[,1],
+    ci,summ$coefficients[,2:4]
+  )
+  return(summ)
+}
+
+extraer_estadistica_f <- function(modelo) {
+  return(summary(modelo)$fstatistic[1])
+}
+
+obtener_p_valor_de_estadistica_f <- function(modelo) {
+  s <- summary(modelo)
+
+  fval <- s$fstatistic["value"]
+  df1 <- s$fstatistic["numdf"]
+  df2 <- s$fstatistic["dendf"]
+
+  return(pf(fval, df1, df2, lower.tail = FALSE))
+}
+
+extraer_info_t_student <- function(modelo) {
+  df <- as.data.frame(summary(modelo)$coefficients)
+  df <- df[-1, c(-1, -2)]
+
+  df$es_significativo <- df[, 2] < 0.05
+  return(df)
+}
+
+# Implementación básica de la función car::ncvTest, debido a que
+# no me funciona descargar aquella librería.
+ncvTest <- function(modelo, variable = NULL) {
+  # Verifica si el modelo es lineal
+  if (!inherits(modelo, "lm")) stop("El modelo debe ser de clase 'lm'")
+  
+  # Extrae los residuos y los valores ajustados
+  residuos <- residuals(modelo)
+  ajustados <- fitted(modelo)
+  
+  # Selecciona la variable de prueba
+  if (is.null(variable)) {
+    z <- ajustados  # por defecto, se usa contra los valores ajustados
+  } else {
+    datos_modelo <- model.frame(modelo)
+    z <- datos_modelo[[variable]]
+    if (is.null(z)) stop("Variable no encontrada en el marco del modelo")
+  }
+  
+  # Calcula la estadística de prueba
+  score <- sum(residuos^2 * z)
+  informacion <- sum((residuos * z)^2)
+  estadistico <- score^2 / informacion
+  
+  # Calcula el valor p
+  valor_p <- 1 - pchisq(estadistico, df = 1)
+  
+  # Devuelve como objeto de prueba
+  resultado <- list(statistic = estadistico, p.value = valor_p)
+  class(resultado) <- "htest"
+  return(resultado)
+}
+
+resaltar_n_puntos_con_mayor_apalancamiento <- function(modelo, n = 10) {
+  graficos <- list()
+
+  observaciones <- modelo$model[[1]]
+  estimaciones <- modelo$fitted.values
+
+  graficos$est_vs_obs <- function () {
+    abs_resid <- abs(observaciones - estimaciones)
+    top10_idx <- order(abs_resid, decreasing = TRUE)[1:n]
+
+    plot(
+      estimaciones, 
+      observaciones,
+      col = ifelse(1:length(observaciones) %in% top10_idx, "red", "black"),
+      pch = 19,
+      xlab = "estimaciones",
+      ylab = "observaciones"
+    )
+    abline(a = 0, b = 1, col = "blue", lty = 2)
+    abline(lm(observaciones ~ estimaciones), col = "darkgreen", lwd = 2)
+  }
+
+  graficos$est_vs_res <- function () {
+    residuos <- modelo$residuals
+    abs_resid <- abs(residuos)
+
+    top10_idx <- order(abs_resid, decreasing = TRUE)[1:n]
+
+    plot(
+      estimaciones, 
+      residuos,
+      col = ifelse(1:length(residuos) %in% top10_idx, "red", "black"),
+      pch = 19,
+      xlab = "estimaciones",
+      ylab = "residuos"
+    )
+    abline(h = 0, lty = 2, col = "blue")
+  }
+
+  return(graficos)
+}
+
+calcular_rse <- function(modelo) {
+  k <- length(modelo$coefficients) - 1
+  SSE <- sum(modelo$residuals**2)
+  num_obs <- length(modelo$residuals)
+
+  return(sqrt(SSE/(num_obs - (1+k))))
+}
+```
+
+
+#### Modelo completo
+
+```{r}
+modelo_completo <- lm(charges ~ ., obs)
+sum.lm(modelo_completo)
+```
+
+En base al valor del $R^2$, note que este modelo explica alrededor del **99.1%** de la varianza de `charges`.
+
+```{r}
+plot(
+  modelo_completo$fitted.values,
+  obs$charges,
+  xlab ="Estimados",
+  ylab="Observados",
+  pch=20,
+  cex=0.5
+)
+abline(0,1,col="red")
+```
+
+```{r}
+plot(
+  modelo_completo$fitted.values,
+  modelo_completo$residuals, 
+  xlab ="estimados",
+  ylab="residuos",
+  pch=20,
+  cex=0.5
+)
+abline(h=0,col="red")
+```
+
+#### Tests
+
+**Prueba de homocedasticidad**
+
+```{r}
+ncvTest(modelo_completo)
+```
+
+En base al p-valor menor a 0.05, se tiene suficiente evidencia de que
+la **varianza de los residuos no es constante**, es decir, 
+no se cumple la homocedasticidad.
+
+**Prueba de normalidad de los errores**
+
+```{r}
+qq_completo <- qqnorm(modelo_completo$residuals)
+qqline(modelo_completo$residuals)
+```
+
+```{r}
+shapiro.test(modelo_completo$residuals)
+```
+
+En base al p-valor menor a 0.05, contamos con suficiente evidencia para
+afirmar que los **residuos no siguen una distribución normal**.
+
+```{r}
+shapiro.test(rstandard(modelo_completo))
+```
+
+Al ejecutar el test para los residuos estandarizados, se llega a la misma
+conclusión respecto a la normalidad de los residuos.
+
+Como se ha fallado en ambos tests, no estamos en condición formal de aplicar 
+ANOVA. Sin embargo, inspeccionemos su resultado de todas maneras, 
+según la tabla de análisis de la varianza.
+
+```{r}
+anova(modelo_completo)
+extraer_estadistica_f(modelo_completo)
+obtener_p_valor_de_estadistica_f(modelo_completo)
+```
+
+Como el p-valor es mucho menor que 0.05, concluimos que este modelo tiene sentido.
+En particular, existe alguna covariable que explica significativamente la varianza
+asociada a `charges`.
+
+```{r}
+extraer_info_t_student(modelo_completo)
+```
+
+Por otro lado, según este otro test, solo se puede afirmar para las variables
+`age`, `num_of_steps`, `Number_of_past_hospitalizations` y `Anual_Salary` que tienen
+sentido en el modelo.
+
+#### Puntos aberrantes
+
+```{r}
+modelo_completo.cd <- cooks.distance(modelo_completo)
+modelo_completo.mcd<- mean(modelo_completo.cd)
+```
+
+**Puntos más lejos de 3 promedios**
+
+```{r}
+modelo_completo.cooked_1 <- which(modelo_completo.cd > 3*modelo_completo.mcd)
+modelo_completo.cooked_1
+```
+
+Según aquel criterio, se tienen `r length(modelo_completo.cooked_1)` puntos aberrantes ... una cantidad significativa.
+
+**Puntos más lejos de cuatro veces los regresores**
+
+```{r}
+modelo_completo.cooked_2 <- which(modelo_completo.cd > (4 / dim(obs)))
+modelo_completo.cooked_2
+```
+
+Según este otro criterio, se tienen `r length(modelo_completo.cooked_2)`
+puntos aberrantes, también una cantidad significativa.
+
+**Mayores apalancamientos**: Resaltamos en rojo los 10 puntos con mayor apalancamiento.
+
+```{r}
+modelo_completo.graficos_apalancamiento <- resaltar_n_puntos_con_mayor_apalancamiento(modelo_completo, 10)
+
+modelo_completo.graficos_apalancamiento$est_vs_obs()
+modelo_completo.graficos_apalancamiento$est_vs_res()
+```
+
+### Modelo tras remover puntos aberrantes
+
+```{r}
+obs_sin_aber <- obs[-modelo_completo.cooked_1,]
+obs_sin_aber
+```
+
+```{r}
+mod_com_2 <- lm(charges ~ ., obs_sin_aber)
+sum.lm(mod_com_2)
+```
+
+Note que el porcentaje de varianza explicada aumentó de 99.1% a **99.4%**.
+
+```{r}
+calcular_rse(modelo_completo)
+calcular_rse(mod_com_2)
+```
+
+Asimismo, resaltamos que el **residuo promedio es menor** en el modelo tras remover puntos aberrantes.
+
+```{r}
+plot(
+  mod_com_2$fitted.values,
+  obs_sin_aber$charges,
+  xlab ="Estimados",
+  ylab="Observados",
+  pch=20,
+  cex=0.5
+)
+abline(0,1,col="red")
+```
+
+```{r}
+plot(
+  mod_com_2$fitted.values,
+  mod_com_2$residuals, 
+  xlab ="estimados",
+  ylab="residuos",
+  pch=20,
+  cex=0.5
+)
+abline(h=0,col="red")
+```
+
+```{r}
+ncvTest(mod_com_2)
+```
+
+El p-valor asociado al test de homocedasticidad prácticamente no ha cambiado.
+
+```{r}
+qq_completo_2 <- qqnorm(mod_com_2$residuals)
+qqline(mod_com_2$residuals)
+
+shapiro.test(mod_com_2$residuals)
+shapiro.test(rstandard(mod_com_2))
+```
+
+Por otro lado, el p-valor asociado al Test de Shapiro **aumentó significativamente**,
+de $1.01e-05$ a $0.0379$. Este último valor es cercano a 0.05, aunque aún menor, por lo
+cual se sigue evidenciando la normalidad de los residuos tras haber removido aquellos puntos aberrantes.
+
+En base a estas comparaciones, el modelo tras haber removido los puntos aberrantes resulta
+**mejor** que el modelo inicialmente construido.
 
 ## Discusión
 
@@ -486,19 +795,22 @@ Gráficos de parejas de variables y comentarios:
 
 Esto te ayuda a entender relaciones lineales potenciales, detectar colinealidad y valores extremos.
 
-#####################################################
 
 4. Primer modelo OLS básico (Clase 03)
 Resultados del modelo inicial
 
-Tabla de análisis de la varianza (ANOVA)
 
 Plot de valores observados y residuos contra valores estimados
 
 5. Evaluación de significancia (Clase 04)
+
+Tabla de análisis de la varianza (ANOVA)
+
 Estadística F del modelo (p < 5%)
 
 Pruebas t para cada variable (p < 5%)
+
+#####################################################
 
 Comparación de modelos usando el error estándar residual
 
