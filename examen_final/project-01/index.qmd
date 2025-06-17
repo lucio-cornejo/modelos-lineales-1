@@ -3,25 +3,22 @@ title: "Trabajo final"
 author: "Lucio Enrique Cornejo Ramírez"
 date: "`r Sys.Date()`"
 format: 
-  html:
-    toc: true
-    toc-depth: 3
-    toc-location: left
-    theme: united
-    highlight-style: tango
-    toc-float: 
-      collapsed: false
-      smooth-scroll: true
-    
-  # pdf:
+  # html:
   #   toc: true
   #   toc-depth: 3
-  #   number-sections: true
+  #   toc-location: left
+  #   theme: united
   #   highlight-style: tango
-  #   keep-tex: true
-
-execute: 
-  cache: true
+  #   toc-float: 
+  #     collapsed: false
+  #     smooth-scroll: true
+    
+  pdf:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    highlight-style: tango
+    keep-tex: true
 
 editor:
   markdown:
@@ -131,8 +128,9 @@ normalidad.
 
 1. Si se encuentran puntos aberrantes, recorrer el modelo sin aquellos y repetir los pasos mencionados.
 
+1. Emplear selección por delante, para atrás y stepwise.
 1. Ejecutar los tests de tipo ANOVA
-1. En caso positivo, incluir los tests post-hoc
+1. En caso el test ANOVA relevante resulte positivo, incluir los tests post-hoc.
 
 
 ## Resultados
@@ -669,7 +667,7 @@ sentido en el modelo.
 
 ```{r}
 modelo_completo.cd <- cooks.distance(modelo_completo)
-modelo_completo.mcd<- mean(modelo_completo.cd)
+modelo_completo.mcd <- mean(modelo_completo.cd)
 ```
 
 **Puntos más lejos de 3 promedios**
@@ -766,151 +764,271 @@ cual se sigue evidenciando la **no normalidad** de los residuos tras haber remov
 En base a estas comparaciones, el modelo tras haber removido los puntos aberrantes resulta
 **mejor** que el modelo inicialmente construido.
 
+### Selección reducida de covariables
+
+Calculamos las correlaciones parciales para estas observaciones.
+
+```{r}
+covariables_numericas.2 <- c(
+  "age",
+  "bmi",
+  "Claim_Amount",
+  "past_consultations",
+  "num_of_steps",
+  "Number_of_past_hospitalizations",
+  "Anual_Salary"
+)
+
+d.cor.2 <- cor(obs_sin_aber[, covariables_numericas.2])
+d.inv.2 <- solve(d.cor.2)
+
+d.corm.2 <- sqrt(1-1/diag(d.inv.2))
+pd.2 <- length(d.corm.2)  
+
+
+d.part.2 <- d.inv.2
+for (i in 1:pd.2) {
+  for (j in 1:(i-1)) {
+    d.part.2[i,j] <- -d.inv.2[i,j]/sqrt(d.inv.2[i,i]*d.inv.2[j,j])
+  }
+  d.part.2[i,i] <- d.corm.2[i]
+  d.part.2[1:(i-1),i] <- d.part.2[i,1:(i-1)]  
+}
+d.part.2
+
+vals_diag.2 <- diag(d.part.2)
+max_col_indices.2 <- apply(d.part.2, 1, which.max)
+idx_ordenados.2 <- order(vals_diag.2, decreasing = TRUE)
+ordenados_vals_diag.2 <- vals_diag.2[idx_ordenados.2]
+
+data.frame(correlacion_parcial = ordenados_vals_diag.2)
+```
+
+Note que aún existen covariables con correlación parcial elevada
+(`num_of_steps`, `Anual_Salary` y `Number_of_past_hospitalizations`),
+mayor que 0.8; pero ya no existe covariable con correlación parcial mayor a $0.9$.
+
+```{r}
+#| echo: false
+melt(d.part.2) |>
+  ggplot(aes(Var1, Var2, fill = value)) +
+    geom_tile() +
+    geom_text(aes(label = round(value, 2)), size = 3) +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white") +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text.y = element_text(angle = 45, hjust = 1)
+    ) +
+    labs(
+      title = "Correlaciones parciales", 
+      x = "Variables", 
+      y = "Variables"
+    )
+```
+
+Sin embargo, los valores pequeños en valor absoluto para correlación parcial entre par de covariables
+implica que existe **poca multicolinealidad** entre las covariables.
+
+```{r}
+modelo_nulo <- lm(charges ~ 1, obs_sin_aber)
+modelo_completo.2 <- lm(charges ~ ., obs_sin_aber)
+```
+
+```{r}
+modelo_forward <- step(
+  modelo_nulo,
+  scope = list(
+    lower = modelo_nulo,
+    upper = modelo_completo.2
+  ),
+  direction = "forward",
+  trace = 0
+)
+
+modelo_backward <- step(
+  modelo_completo.2,
+  scope = list(
+    lower = modelo_nulo,
+    upper = modelo_completo.2
+  ),
+  direction = "backward",
+  trace = 0
+)
+
+modelo_both <- step(
+  modelo_nulo,
+  scope = list(
+    lower = modelo_nulo,
+    upper = modelo_completo.2
+  ),
+  direction = "both",
+  trace = 0
+)
+```
+
+```{r}
+sum.lm(modelo_forward)
+sum.lm(modelo_backward)
+sum.lm(modelo_both)
+```
+
+```{r}
+calcular_rse(modelo_forward)
+calcular_rse(modelo_backward)
+calcular_rse(modelo_both)
+calcular_rse(modelo_completo)
+calcular_rse(mod_com_2)
+```
+
+### Modelo final
+
+Comparando las covariables finales de los tres últimos modelos creados, además de sus coeficientes
+respectivos, note que se trata de un único modelo.
+
+Asimimo, aquel modelo presenta un $R^2$ elevado, similar al del previo mejor modelo,
+también con un valor aproximado a 99.4%.
+
+No obstante, recalcamos que el nuevo modelo presenta un **residuo promedio menor** que 
+el del mejor modelo que habíamos construído hasta ahora.
+
+En ese sentido, el mejor modelo que planteamos es `modelo_both`.
+Este presenta como covariables a `age`, `Anual_Salary`, `bmi`, `smoker`, `num_of_steps` y `Number_of_past_hospitalizations`.
+
+```{r}
+modelo_both
+```
+
+```{r}
+plot(
+  modelo_both$fitted.values,
+  obs_sin_aber$charges,
+  xlab ="Estimados",
+  ylab="Observados",
+  pch=20,
+  cex=0.5
+)
+abline(0,1,col="red")
+```
+
+```{r}
+plot(
+  modelo_both$fitted.values,
+  modelo_both$residuals, 
+  xlab ="estimados",
+  ylab="residuos",
+  pch=20,
+  cex=0.5
+)
+abline(h=0,col="red")
+```
+
+**Prueba de homocedasticidad**
+
+```{r}
+ncvTest(modelo_both)
+```
+
+**Prueba de normalidad de los errores**
+
+```{r}
+qq_completo_3 <- qqnorm(modelo_both$residuals)
+qqline(modelo_both$residuals)
+```
+
+```{r}
+shapiro.test(modelo_both$residuals)
+shapiro.test(rstandard(modelo_both))
+```
+
+Para este modelo también se concluye que no se cumple la homocedasticidad
+y que los residuos no presentan una distribución normal.
+
+```{r}
+anova(modelo_both)
+extraer_estadistica_f(modelo_both)
+obtener_p_valor_de_estadistica_f(modelo_both)
+```
+
+```{r}
+extraer_info_t_student(modelo_both)
+```
+
+A partir de estos dos últimos tests, se concluye que este modelo tiene sentido,
+pero que la covariable `bmi` no es significativa para ese modelo.
+
+En base a que residuos de este modelo no satisfacen la hipótesis de homocedasticidad
+ni de distribución normal, no presentaremos los análisis de ANOVA tipo I, II ni III,
+por tratarse aquellas hipótesis de condiciones necesarias.
+
+
 ## Discusión
+
+```{r}
+sum.lm(modelo_completo)
+sum.lm(mod_com_2)
+sum.lm(modelo_both)
+```
+
+Note que el último modelo presentado cuenta con el mayor $R^2$ ajustado, 99.39%, 
+entre los modelos expuestos. 
+Este criterio refuerza su selección como modelo final para este proyecto.
+
+```{r}
+modelo_both
+```
+
+Entre lo positivo de este estudio, recalcamos que el modelo final presenta un alto
+valor de $R^2$. Sin embargo, el hecho que para todos los modelos que creamos se llegó
+a concluir no homocedasticidad y residuos con distribución no normal, parece sugerir que
+el modelo de regresión lineal posiblemente no sea el adecuado para estos datos.
+
+En todo caso, resulta posible que un modelo lineal generalizado resulte más apropiado para 
+el uso con estos datos, en particular debido a la no homocedasticidad encontrada.
+
+Respecto al mejor modelo que presentamos, analicemos la relevancia de las covariables 
+que consideró para su definición:
+
+- `age`: Predictor muy relevante con la variable respuesta, pues, como se mencionó en una sección previa, sucede que paciente de mayor edad suelen requerir más cuidados médicos, su salud está en mayor riesgo, por lo que se espera que la aseguradora cubra más el costo de un tratamiento médico.
+En efecto, tal es el caso, pues el coeficiente asociado a `age` en el modelo resulta negativo.
+Así, a mayor edad del paciente, se espera que pague menos (pues la aseguradora cubre mayor costo)
+por un tratamiento médico.
+- `Anual_Salary`: En el caso de pacientes con alto ingreso anual, se espera que sus tratamientos 
+médicos sean también de alto costo. Esto implica que la aseguradora cubra una **menor proporción** del costo médico, pues la cobertura ya resulta alta en base al precio total del
+procedimiento. Esta relación se hace evidente en el hecho que el coeficiente asociado a 
+`Annual_Salary` es positivo; es decir, a mayor salario anual, menos costo cubre la aseguradora.
+- `bmi`: La relación entre esta covariable y la variable por predecir es muy similar la relación
+de la edad y la variable por predecir. Por ello, el análisis el análogo, y, simplemente recalcamos 
+que el modelo resalta lo esperado (en base al coeficiente negativo asociado a `bmi`), pues, a mayor índice de masa corporal (`bmi`), la aseguradora cubre más del costo, por lo cual el paciente paga menos.
+- `smoker`: En el modelo, esta covariable categórica ha sido convertida en 0 y 1; considerando el 
+caso 1 cuando el paciente es fumador. En ese sentido, el coeficiente positivo asociado a esta
+covariable indice que, si el paciente es fumador, entonces su precio a pagar por tratamiento médico
+es también mayor, pues la aseguradora cubre **menos** del costo del procedimiento médico.
+- `num_of_steps`: Recordemos que esta covariable la interpretamos como un indicador del estado de salud del paciente. Es decir, un mayor valor de `num_of_steps` representa un mejor estado de salud, de actividad física, del paciente. En ese sentido, es coherente que aquella covariable presente
+un coeficiente positivo según el modelo. Esto pues, mientras más saludable sea una persona, su gasto
+por procedimiento médico será mayor; es decir, la aseguradora cubrirá una **menor** cantidad del
+costo del procedimiento.
+- `Number_of_past_hospitalizations`: Esta covariable es posiblemente la que más relación se espera
+tenga con la variable por predecir. El coeficiente negativo asociada a esta covariable es coherente
+con el hecho que, a mayor número de hospitalizaciones pasadas, se espera que el seguro cubra una
+mayor parte del costo del procedimiento médico, por lo cual el gasto del paciente es **menor**
+por procedimiento médico.
+
+Como no existe una interpretación física, realista, al caso `bmi = 0`, no interpretaremos
+el intercepto asociado al modelo.
+
 
 ## Conclusiones
 
+1. **Validación de hipótesis sobre correlaciones**: Se confirmaron las hipótesis respecto al tipo de correlación (positiva o negativa) entre las covariables del modelo final y el precio por pagar por procedimiento médico. 
 
+1. **Capacidad predictiva del modelo**: El último modelo presentado logró explicar el **99.4%** de la varianza en el costo para el paciente por procedimiento médico, demostrando así una capacidad predictiva alta. Este nivel de precisión sugiere que las variables seleccionadas capturan efectivamente los factores determinantes en la cobertura de seguros médicos.
 
-<!-- 
-  → preparación de datos 
-  → exploración 
-  → modelado
-  → evaluación
-  → diagnóstico
-  → mejora del modelo
+1. **Variables más influyentes identificadas**: El análisis reveló que las variables más significativas para predecir los costos cubiertos son: edad (`age`), salario anual (`Annual_Salary`), índice de masa corporal (`bmi`), hábito de fumar (`smoker`), número de pasos (`num_of_steps`), y número de hospitalizaciones previas (`Number_of_past_hospitalizations`). Estas variables representan factores demográficos, socioeconómicos y de estilo de vida que las aseguradoras consideran en sus decisiones de cobertura.
 
-1. Introducción
-Presenta el dataset elegido y el objetivo del análisis.
+1. **Limitaciones metodológicas detectadas**: A pesar del alto poder predictivo, el modelo no satisface supuestos importante para la regresión lineal, la homocedasticidad y la normalidad de los residuos. Estas limitaciones sugieren que un modelo lineal simple podría no ser la aproximación más adecuada para estos datos.
 
-Describe brevemente las variables y el contexto.
+1. **Recomendación de modelos alternativos**: Los hallazgos de heterocedasticidad y no normalidad de residuos indican que un **modelo lineal generalizado (GLM)** podría ser más apropiado para este tipo de datos. Estos enfoques alternativos podrían proporcionar estimaciones más confiables, además de  intervalos de confianza más precisos.
 
-2. Limpieza y preparación de los datos (Clase "Start")
-Tratar los valores faltantes:
-
-“Como se resultan dos valores faltantes, se decide de tirar las observaciones correspondientes.”
-
-3. Exploración inicial (Clase 02)
-Gráficos de parejas de variables y comentarios:
-
-Esto te ayuda a entender relaciones lineales potenciales, detectar colinealidad y valores extremos.
-
-
-4. Primer modelo OLS básico (Clase 03)
-Resultados del modelo inicial
-
-
-Plot de valores observados y residuos contra valores estimados
-
-5. Evaluación de significancia (Clase 04)
-
-Tabla de análisis de la varianza (ANOVA)
-
-Estadística F del modelo (p < 5%)
-
-Pruebas t para cada variable (p < 5%)
-
-#####################################################
-
-Comparación de modelos usando el error estándar residual
-
-6. Selección de variables (Clase 05)
-Correlación parcial entre variables
-
-Selección hacia adelante, hacia atrás y stepwise en dos modelos distintos
-
-Comparación de los modelos obtenidos: ¿coinciden? ¿cuál parece mejor?
-
-7. Diagnóstico de supuestos (Clase 06 y 07)
-Buscar puntos aberrantes y repetir el modelo sin ellos
-
-Tests de supuestos clásicos:
-
-Levene (homocedasticidad)
-
-Shapiro-Wilk (normalidad)
-
-Discusión de cuándo es válido el ANOVA, basado en los supuestos
-
-8. Modelo con interacciones y comparación ANOVAs (Clase 08)
-Modelo extendido con interacciones (por ejemplo, con "competición")
-
-Correr y comparar las tres ANOVA (modelo base, con interacción, etc.)
-
-Incluir tests post-hoc si aplica
-
-Evaluar impacto en R², significancia de interacciones, etc.
-
-9. Conclusiones
-¿Qué modelo final seleccionas y por qué?
-
-¿Cuáles variables explican mejor la variable respuesta?
-
-Reflexión crítica sobre las limitaciones (validez de supuestos, tamaño muestral, etc.)
-
--->
-
-<!-- 
-
-## Start
-
-- Como se resultan dos valores faltantes, se decide de tirar las observaciones correspondientes.
-
-
-## 02
-
-- hacer gráficos de parejas de variables y comentar
-
-## 03
-
-- resultados
-- tabla de analisis de la varianza
-- el apalancamiento de las unidades
-- dos plot de valores observados y residuos contra los valores estimados
-- ¿a través de las tablas de análisis de varianza, ¿cual modelo le
-parece mejor?
-- tirar dos unidades con mayor apalancamiento,
-comentar el cambio, incluyendo gráficos con
-valores estimados y errores en los dos casos
-- mostrar la diferencia entre betas y entre los residuos de los dos modelos.
-
-## 04
-
-- Evaluar si el modelo tiene sentido (Estadística F, umbral 5%) y si todas
-las variables explicativas tienen sentido (t de student, umbral 5%).
-- Considerando el resíduo promedio (Residual standard error), ¿cual
-modelo le parece mejor?
-
-## 05
-
-- ¿cuales son las especialidades mejor explicadas para las demás?
-- ¿cuales las parejas con más alta correlación parcial?
-- modelar dos especialidades con selección para adelante, para atrás y
-stepwise de las demás. ¿Sale el mismo modelo o cual le parece mejor?
-- Reporte shown by teacher, en pregunta 9
-
-## 06
-
-- Si se encuentran puntos aberrantes, recorrer el modelo sin esos y hacer
-de nuevo todos los test.
-- Look for puntos aberrantes, luego recorrer modelo sin ellos
-
-## 07
-
-- qq-plot for residuals
-- correr test de Levine y Shapiro para averiguar la homocedasticidad y la
-normalidad.
-- correr el ANOVA con el modelo lineal si lo test se lo permiten: 
-- Comment del profe: `
-No siempre se cumplen los requisitos de homocedasticidad y normalidad. Esto limita la aplicación de la anova ya que la estimación de la varianza no es más posible. De consecuencia las probabilidades asociadas a las estadísticas solo cuantifican la relevancia de las diferencias observadas, pero no pueden ser empleadas estadísticamente.
-
-De todo modo, las anovas muestran una calidad muy alta, con un R2
-igual a .82, .82, .84 y .85 respectivamente. Este valor mejora mucho cuando se tira el intercepta en el modelo, llegando a 99.7, 99.8, 99.9 y 99.5 respectivamente. La interacción resulta significativa solo para aletas y masa.
-`
-
-## 08
-
-- ver cosa cambia, incluyendo interacciones con la competición y correndo las tres anova
-- incluir los test post-hoc
-
--->
+1. **Necesidad de validación externa**: Aunque el modelo muestra alta precisión en los datos analizados, se recomienda validar estos resultados con datos de diferentes poblaciones, sistemas de salud y contextos geográficos para confirmar su generalización. Recalcamos que no se especifica
+en la fuente online de estos datos, la proveniencia de las observaciones analizadas.

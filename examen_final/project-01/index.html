@@ -126,6 +126,8 @@ window.Quarto = {
   <li><a href="#filtro-de-variables" id="toc-filtro-de-variables" class="nav-link" data-scroll-target="#filtro-de-variables">Filtro de variables</a></li>
   <li><a href="#modelamiento" id="toc-modelamiento" class="nav-link" data-scroll-target="#modelamiento">Modelamiento</a></li>
   <li><a href="#modelo-tras-remover-puntos-aberrantes" id="toc-modelo-tras-remover-puntos-aberrantes" class="nav-link" data-scroll-target="#modelo-tras-remover-puntos-aberrantes">Modelo tras remover puntos aberrantes</a></li>
+  <li><a href="#selección-reducida-de-covariables" id="toc-selección-reducida-de-covariables" class="nav-link" data-scroll-target="#selección-reducida-de-covariables">Selección reducida de covariables</a></li>
+  <li><a href="#modelo-final" id="toc-modelo-final" class="nav-link" data-scroll-target="#modelo-final">Modelo final</a></li>
   </ul></li>
   <li><a href="#discusión" id="toc-discusión" class="nav-link" data-scroll-target="#discusión">Discusión</a></li>
   <li><a href="#conclusiones" id="toc-conclusiones" class="nav-link" data-scroll-target="#conclusiones">Conclusiones</a></li>
@@ -231,8 +233,9 @@ window.Quarto = {
 <li><p>Emplear el test de Levine y Shapiro para averiguar la homocedasticidad y la normalidad.</p></li>
 <li><p>En caso positivo, evaluar por medio de ANOVA si el modelo tiene sentido. En caso positivo, determinar qué variables explicativas tienen sentido.</p></li>
 <li><p>Si se encuentran puntos aberrantes, recorrer el modelo sin aquellos y repetir los pasos mencionados.</p></li>
+<li><p>Emplear selección por delante, para atrás y stepwise.</p></li>
 <li><p>Ejecutar los tests de tipo ANOVA</p></li>
-<li><p>En caso positivo, incluir los tests post-hoc</p></li>
+<li><p>En caso el test ANOVA relevante resulte positivo, incluir los tests post-hoc.</p></li>
 </ol>
 </section>
 </section>
@@ -956,7 +959,7 @@ Anual_Salary                    71.54209305 1.626762e-261             TRUE</code
 <h4 class="anchored" data-anchor-id="puntos-aberrantes">Puntos aberrantes</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>modelo_completo.cd <span class="ot">&lt;-</span> <span class="fu">cooks.distance</span>(modelo_completo)</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>modelo_completo.mcd<span class="ot">&lt;-</span> <span class="fu">mean</span>(modelo_completo.cd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>modelo_completo.mcd <span class="ot">&lt;-</span> <span class="fu">mean</span>(modelo_completo.cd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Puntos más lejos de 3 promedios</strong></p>
 <div class="cell">
@@ -1159,153 +1162,572 @@ W = 0.9933, p-value = 0.0379</code></pre>
 <p>Por otro lado, el p-valor asociado al Test de Shapiro <strong>aumentó significativamente</strong>, de <span class="math inline">\(1.01*10^{-5}\)</span> a <span class="math inline">\(0.0379\)</span>. Este último valor es cercano a 0.05, aunque aún menor, por lo cual se sigue evidenciando la <strong>no normalidad</strong> de los residuos tras haber removido aquellos puntos aberrantes.</p>
 <p>En base a estas comparaciones, el modelo tras haber removido los puntos aberrantes resulta <strong>mejor</strong> que el modelo inicialmente construido.</p>
 </section>
+<section id="selección-reducida-de-covariables" class="level3">
+<h3 class="anchored" data-anchor-id="selección-reducida-de-covariables">Selección reducida de covariables</h3>
+<p>Calculamos las correlaciones parciales para estas observaciones.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>covariables_numericas<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"age"</span>,</span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"bmi"</span>,</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Claim_Amount"</span>,</span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"past_consultations"</span>,</span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"num_of_steps"</span>,</span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Number_of_past_hospitalizations"</span>,</span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Anual_Salary"</span></span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a>d.cor<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">cor</span>(obs_sin_aber[, covariables_numericas<span class="fl">.2</span>])</span>
+<span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a>d.inv<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">solve</span>(d.cor<span class="fl">.2</span>)</span>
+<span id="cb70-13"><a href="#cb70-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a>d.corm<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="dv">1-1</span><span class="sc">/</span><span class="fu">diag</span>(d.inv<span class="fl">.2</span>))</span>
+<span id="cb70-15"><a href="#cb70-15" aria-hidden="true" tabindex="-1"></a>pd<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">length</span>(d.corm<span class="fl">.2</span>)  </span>
+<span id="cb70-16"><a href="#cb70-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-17"><a href="#cb70-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-18"><a href="#cb70-18" aria-hidden="true" tabindex="-1"></a>d.part<span class="fl">.2</span> <span class="ot">&lt;-</span> d.inv<span class="fl">.2</span></span>
+<span id="cb70-19"><a href="#cb70-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>pd<span class="fl">.2</span>) {</span>
+<span id="cb70-20"><a href="#cb70-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(i<span class="dv">-1</span>)) {</span>
+<span id="cb70-21"><a href="#cb70-21" aria-hidden="true" tabindex="-1"></a>    d.part<span class="fl">.2</span>[i,j] <span class="ot">&lt;-</span> <span class="sc">-</span>d.inv<span class="fl">.2</span>[i,j]<span class="sc">/</span><span class="fu">sqrt</span>(d.inv<span class="fl">.2</span>[i,i]<span class="sc">*</span>d.inv<span class="fl">.2</span>[j,j])</span>
+<span id="cb70-22"><a href="#cb70-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb70-23"><a href="#cb70-23" aria-hidden="true" tabindex="-1"></a>  d.part<span class="fl">.2</span>[i,i] <span class="ot">&lt;-</span> d.corm<span class="fl">.2</span>[i]</span>
+<span id="cb70-24"><a href="#cb70-24" aria-hidden="true" tabindex="-1"></a>  d.part<span class="fl">.2</span>[<span class="dv">1</span><span class="sc">:</span>(i<span class="dv">-1</span>),i] <span class="ot">&lt;-</span> d.part<span class="fl">.2</span>[i,<span class="dv">1</span><span class="sc">:</span>(i<span class="dv">-1</span>)]  </span>
+<span id="cb70-25"><a href="#cb70-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb70-26"><a href="#cb70-26" aria-hidden="true" tabindex="-1"></a>d.part<span class="fl">.2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                         age         bmi Claim_Amount
+age                              0.665243871  0.16416635  -0.07721888
+bmi                              0.164166348  0.28642055  -0.04976349
+Claim_Amount                    -0.077218876 -0.04976349   0.39336416
+past_consultations               0.013448272  0.03776371   0.02053137
+num_of_steps                     0.583992833 -0.11066826   0.06308460
+Number_of_past_hospitalizations  0.006854609  0.06287529   0.07840750
+Anual_Salary                    -0.461124002  0.15756448   0.10218653
+                                past_consultations num_of_steps
+age                                     0.01344827    0.5839928
+bmi                                     0.03776371   -0.1106683
+Claim_Amount                            0.02053137    0.0630846
+past_consultations                      0.54647920    0.1470056
+num_of_steps                            0.14700565    0.8882175
+Number_of_past_hospitalizations        -0.03927175    0.4190512
+Anual_Salary                            0.21686281    0.4624652
+                                Number_of_past_hospitalizations Anual_Salary
+age                                                 0.006854609   -0.4611240
+bmi                                                 0.062875288    0.1575645
+Claim_Amount                                        0.078407497    0.1021865
+past_consultations                                 -0.039271754    0.2168628
+num_of_steps                                        0.419051171    0.4624652
+Number_of_past_hospitalizations                     0.834430684    0.3550532
+Anual_Salary                                        0.355053223    0.8544968</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>vals_diag<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">diag</span>(d.part<span class="fl">.2</span>)</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>max_col_indices<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">apply</span>(d.part<span class="fl">.2</span>, <span class="dv">1</span>, which.max)</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>idx_ordenados<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">order</span>(vals_diag<span class="fl">.2</span>, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>ordenados_vals_diag<span class="fl">.2</span> <span class="ot">&lt;-</span> vals_diag<span class="fl">.2</span>[idx_ordenados<span class="fl">.2</span>]</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">correlacion_parcial =</span> ordenados_vals_diag<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                correlacion_parcial
+num_of_steps                              0.8882175
+Anual_Salary                              0.8544968
+Number_of_past_hospitalizations           0.8344307
+age                                       0.6652439
+past_consultations                        0.5464792
+Claim_Amount                              0.3933642
+bmi                                       0.2864205</code></pre>
+</div>
+</div>
+<p>Note que aún existen covariables con correlación parcial elevada (<code>num_of_steps</code>, <code>Anual_Salary</code> y <code>Number_of_past_hospitalizations</code>), mayor que 0.8; pero ya no existe covariable con correlación parcial mayor a <span class="math inline">\(0.9\)</span>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-42-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Sin embargo, los valores pequeños en valor absoluto para correlación parcial entre par de covariables implica que existe <strong>poca multicolinealidad</strong> entre las covariables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>modelo_nulo <span class="ot">&lt;-</span> <span class="fu">lm</span>(charges <span class="sc">~</span> <span class="dv">1</span>, obs_sin_aber)</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>modelo_completo<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">lm</span>(charges <span class="sc">~</span> ., obs_sin_aber)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>modelo_forward <span class="ot">&lt;-</span> <span class="fu">step</span>(</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>  modelo_nulo,</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">scope =</span> <span class="fu">list</span>(</span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower =</span> modelo_nulo,</span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper =</span> modelo_completo<span class="fl">.2</span></span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"forward"</span>,</span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">trace =</span> <span class="dv">0</span></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>modelo_backward <span class="ot">&lt;-</span> <span class="fu">step</span>(</span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>  modelo_completo<span class="fl">.2</span>,</span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">scope =</span> <span class="fu">list</span>(</span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower =</span> modelo_nulo,</span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper =</span> modelo_completo<span class="fl">.2</span></span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"backward"</span>,</span>
+<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">trace =</span> <span class="dv">0</span></span>
+<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a>modelo_both <span class="ot">&lt;-</span> <span class="fu">step</span>(</span>
+<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a>  modelo_nulo,</span>
+<span id="cb75-23"><a href="#cb75-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">scope =</span> <span class="fu">list</span>(</span>
+<span id="cb75-24"><a href="#cb75-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower =</span> modelo_nulo,</span>
+<span id="cb75-25"><a href="#cb75-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper =</span> modelo_completo<span class="fl">.2</span></span>
+<span id="cb75-26"><a href="#cb75-26" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb75-27"><a href="#cb75-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction =</span> <span class="st">"both"</span>,</span>
+<span id="cb75-28"><a href="#cb75-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">trace =</span> <span class="dv">0</span></span>
+<span id="cb75-29"><a href="#cb75-29" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum.lm</span>(modelo_forward)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + 
+    smoker + age + bmi, data = obs_sin_aber)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2281.32  -580.54   -16.49   544.60  2573.51 
+
+Coefficients:
+                                                2.5 %     97.5 % Std. Error
+(Intercept)                     -4.036e+04 -4.204e+04 -3.868e+04  8.553e+02
+Anual_Salary                     1.547e-05  1.512e-05  1.582e-05  1.774e-07
+num_of_steps                     5.532e-02  5.301e-02  5.762e-02  1.173e-03
+Number_of_past_hospitalizations -1.909e+03 -2.216e+03 -1.602e+03  1.561e+02
+smokeryes                        8.004e+02  3.744e+02  1.226e+03  2.168e+02
+age                             -1.006e+01 -1.880e+01 -1.334e+00  4.443e+00
+bmi                             -9.569e+00 -2.292e+01  3.777e+00  6.792e+00
+                                t value Pr(&gt;|t|)    
+(Intercept)                     -47.182  &lt; 2e-16 ***
+Anual_Salary                     87.232  &lt; 2e-16 ***
+num_of_steps                     47.146  &lt; 2e-16 ***
+Number_of_past_hospitalizations -12.227  &lt; 2e-16 ***
+smokeryes                         3.692 0.000249 ***
+age                              -2.265 0.023956 *  
+bmi                              -1.409 0.159512    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 794 on 455 degrees of freedom
+Multiple R-squared:  0.994, Adjusted R-squared:  0.9939 
+F-statistic: 1.257e+04 on 6 and 455 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum.lm</span>(modelo_backward)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ smoker + age + bmi + num_of_steps + Number_of_past_hospitalizations + 
+    Anual_Salary, data = obs_sin_aber)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2281.32  -580.54   -16.49   544.60  2573.51 
+
+Coefficients:
+                                                2.5 %     97.5 % Std. Error
+(Intercept)                     -4.036e+04 -4.204e+04 -3.868e+04  8.553e+02
+smokeryes                        8.004e+02  3.744e+02  1.226e+03  2.168e+02
+age                             -1.006e+01 -1.880e+01 -1.334e+00  4.443e+00
+bmi                             -9.569e+00 -2.292e+01  3.777e+00  6.792e+00
+num_of_steps                     5.532e-02  5.301e-02  5.762e-02  1.173e-03
+Number_of_past_hospitalizations -1.909e+03 -2.216e+03 -1.602e+03  1.561e+02
+Anual_Salary                     1.547e-05  1.512e-05  1.582e-05  1.774e-07
+                                t value Pr(&gt;|t|)    
+(Intercept)                     -47.182  &lt; 2e-16 ***
+smokeryes                         3.692 0.000249 ***
+age                              -2.265 0.023956 *  
+bmi                              -1.409 0.159512    
+num_of_steps                     47.146  &lt; 2e-16 ***
+Number_of_past_hospitalizations -12.227  &lt; 2e-16 ***
+Anual_Salary                     87.232  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 794 on 455 degrees of freedom
+Multiple R-squared:  0.994, Adjusted R-squared:  0.9939 
+F-statistic: 1.257e+04 on 6 and 455 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum.lm</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + 
+    smoker + age + bmi, data = obs_sin_aber)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2281.32  -580.54   -16.49   544.60  2573.51 
+
+Coefficients:
+                                                2.5 %     97.5 % Std. Error
+(Intercept)                     -4.036e+04 -4.204e+04 -3.868e+04  8.553e+02
+Anual_Salary                     1.547e-05  1.512e-05  1.582e-05  1.774e-07
+num_of_steps                     5.532e-02  5.301e-02  5.762e-02  1.173e-03
+Number_of_past_hospitalizations -1.909e+03 -2.216e+03 -1.602e+03  1.561e+02
+smokeryes                        8.004e+02  3.744e+02  1.226e+03  2.168e+02
+age                             -1.006e+01 -1.880e+01 -1.334e+00  4.443e+00
+bmi                             -9.569e+00 -2.292e+01  3.777e+00  6.792e+00
+                                t value Pr(&gt;|t|)    
+(Intercept)                     -47.182  &lt; 2e-16 ***
+Anual_Salary                     87.232  &lt; 2e-16 ***
+num_of_steps                     47.146  &lt; 2e-16 ***
+Number_of_past_hospitalizations -12.227  &lt; 2e-16 ***
+smokeryes                         3.692 0.000249 ***
+age                              -2.265 0.023956 *  
+bmi                              -1.409 0.159512    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 794 on 455 degrees of freedom
+Multiple R-squared:  0.994, Adjusted R-squared:  0.9939 
+F-statistic: 1.257e+04 on 6 and 455 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calcular_rse</span>(modelo_forward)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 794.0415</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calcular_rse</span>(modelo_backward)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 794.0415</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calcular_rse</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 794.0415</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calcular_rse</span>(modelo_completo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1091.864</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calcular_rse</span>(mod_com_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 795.7768</code></pre>
+</div>
+</div>
+</section>
+<section id="modelo-final" class="level3">
+<h3 class="anchored" data-anchor-id="modelo-final">Modelo final</h3>
+<p>Comparando las covariables finales de los tres últimos modelos creados, además de sus coeficientes respectivos, note que se trata de un único modelo.</p>
+<p>Asimimo, aquel modelo presenta un <span class="math inline">\(R^2\)</span> elevado, similar al del previo mejor modelo, también con un valor aproximado a 99.4%.</p>
+<p>No obstante, recalcamos que el nuevo modelo presenta un <strong>residuo promedio menor</strong> que el del mejor modelo que habíamos construído hasta ahora.</p>
+<p>En ese sentido, el mejor modelo que planteamos es <code>modelo_both</code>. Este presenta como covariables a <code>age</code>, <code>Anual_Salary</code>, <code>bmi</code>, <code>smoker</code>, <code>num_of_steps</code> y <code>Number_of_past_hospitalizations</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>modelo_both</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + 
+    smoker + age + bmi, data = obs_sin_aber)
+
+Coefficients:
+                    (Intercept)                     Anual_Salary  
+                     -4.036e+04                        1.547e-05  
+                   num_of_steps  Number_of_past_hospitalizations  
+                      5.532e-02                       -1.909e+03  
+                      smokeryes                              age  
+                      8.004e+02                       -1.006e+01  
+                            bmi  
+                     -9.569e+00  </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb94"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb94-2"><a href="#cb94-2" aria-hidden="true" tabindex="-1"></a>  modelo_both<span class="sc">$</span>fitted.values,</span>
+<span id="cb94-3"><a href="#cb94-3" aria-hidden="true" tabindex="-1"></a>  obs_sin_aber<span class="sc">$</span>charges,</span>
+<span id="cb94-4"><a href="#cb94-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span><span class="st">"Estimados"</span>,</span>
+<span id="cb94-5"><a href="#cb94-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab=</span><span class="st">"Observados"</span>,</span>
+<span id="cb94-6"><a href="#cb94-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">pch=</span><span class="dv">20</span>,</span>
+<span id="cb94-7"><a href="#cb94-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cex=</span><span class="fl">0.5</span></span>
+<span id="cb94-8"><a href="#cb94-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb94-9"><a href="#cb94-9" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="at">col=</span><span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-48-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>  modelo_both<span class="sc">$</span>fitted.values,</span>
+<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>  modelo_both<span class="sc">$</span>residuals, </span>
+<span id="cb95-4"><a href="#cb95-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span><span class="st">"estimados"</span>,</span>
+<span id="cb95-5"><a href="#cb95-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab=</span><span class="st">"residuos"</span>,</span>
+<span id="cb95-6"><a href="#cb95-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">pch=</span><span class="dv">20</span>,</span>
+<span id="cb95-7"><a href="#cb95-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cex=</span><span class="fl">0.5</span></span>
+<span id="cb95-8"><a href="#cb95-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb95-9"><a href="#cb95-9" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="dv">0</span>,<span class="at">col=</span><span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-49-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Prueba de homocedasticidad</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb96"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ncvTest</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+
+
+data:  
+= 167917219, p-value &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p><strong>Prueba de normalidad de los errores</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb98"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>qq_completo_3 <span class="ot">&lt;-</span> <span class="fu">qqnorm</span>(modelo_both<span class="sc">$</span>residuals)</span>
+<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(modelo_both<span class="sc">$</span>residuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb99"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(modelo_both<span class="sc">$</span>residuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  modelo_both$residuals
+W = 0.99308, p-value = 0.03182</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb101"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(<span class="fu">rstandard</span>(modelo_both))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  rstandard(modelo_both)
+W = 0.99322, p-value = 0.03554</code></pre>
+</div>
+</div>
+<p>Para este modelo también se concluye que no se cumple la homocedasticidad y que los residuos no presentan una distribución normal.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb103"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: charges
+                                 Df     Sum Sq    Mean Sq    F value    Pr(&gt;F)
+Anual_Salary                      1 4.3922e+10 4.3922e+10 69661.4333 &lt; 2.2e-16
+num_of_steps                      1 3.4856e+09 3.4856e+09  5528.3339 &lt; 2.2e-16
+Number_of_past_hospitalizations   1 1.1417e+08 1.1417e+08   181.0800 &lt; 2.2e-16
+smoker                            1 3.1743e+07 3.1743e+07    50.3452 4.973e-12
+age                               1 3.1258e+06 3.1258e+06     4.9577   0.02646
+bmi                               1 1.2518e+06 1.2518e+06     1.9853   0.15951
+Residuals                       455 2.8688e+08 6.3050e+05                     
+                                   
+Anual_Salary                    ***
+num_of_steps                    ***
+Number_of_past_hospitalizations ***
+smoker                          ***
+age                             *  
+bmi                                
+Residuals                          
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb105"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a><span class="fu">extraer_estadistica_f</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   value 
+12571.36 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb107"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="fu">obtener_p_valor_de_estadistica_f</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>value 
+    0 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb109"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a><span class="fu">extraer_info_t_student</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                   t value      Pr(&gt;|t|) es_significativo
+Anual_Salary                     87.232374 3.440579e-286             TRUE
+num_of_steps                     47.145582 3.122331e-177             TRUE
+Number_of_past_hospitalizations -12.227038  6.354538e-30             TRUE
+smokeryes                         3.692271  2.492338e-04             TRUE
+age                              -2.265428  2.395574e-02             TRUE
+bmi                              -1.409021  1.595120e-01            FALSE</code></pre>
+</div>
+</div>
+<p>A partir de estos dos últimos tests, se concluye que este modelo tiene sentido, pero que la covariable <code>bmi</code> no es significativa para ese modelo.</p>
+<p>En base a que residuos de este modelo no satisfacen la hipótesis de homocedasticidad ni de distribución normal, no presentaremos los análisis de ANOVA tipo I, II ni III, por tratarse aquellas hipótesis de condiciones necesarias.</p>
+</section>
 </section>
 <section id="discusión" class="level2">
 <h2 class="anchored" data-anchor-id="discusión">Discusión</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb111"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum.lm</span>(modelo_completo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ ., data = obs)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3574.8  -728.0  -121.6   631.4  3762.3 
+
+Coefficients:
+                                                2.5 %     97.5 % Std. Error
+(Intercept)                     -4.223e+04 -4.430e+04 -4.016e+04  1.055e+03
+sexmale                          1.018e+02 -9.310e+01  2.967e+02  9.919e+01
+smokeryes                        3.807e+02 -1.072e+02  8.686e+02  2.483e+02
+age                             -2.649e+01 -3.670e+01 -1.628e+01  5.196e+00
+bmi                             -1.680e+01 -3.465e+01  1.046e+00  9.083e+00
+Claim_Amount                     2.238e-03 -4.649e-03  9.125e-03  3.505e-03
+past_consultations               7.868e-01 -1.567e+01  1.725e+01  8.378e+00
+num_of_steps                     5.771e-02  5.491e-02  6.051e-02  1.427e-03
+Number_of_past_hospitalizations -1.022e+03 -1.405e+03 -6.391e+02  1.950e+02
+Anual_Salary                     1.451e-05  1.411e-05  1.490e-05  2.028e-07
+                                t value Pr(&gt;|t|)    
+(Intercept)                     -40.029  &lt; 2e-16 ***
+sexmale                           1.026    0.305    
+smokeryes                         1.533    0.126    
+age                              -5.097 4.93e-07 ***
+bmi                              -1.850    0.065 .  
+Claim_Amount                      0.639    0.523    
+past_consultations                0.094    0.925    
+num_of_steps                     40.434  &lt; 2e-16 ***
+Number_of_past_hospitalizations  -5.242 2.37e-07 ***
+Anual_Salary                     71.542  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 1092 on 490 degrees of freedom
+Multiple R-squared:  0.991, Adjusted R-squared:  0.9908 
+F-statistic:  5977 on 9 and 490 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb113"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum.lm</span>(mod_com_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ ., data = obs_sin_aber)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2250.13  -580.13   -19.38   534.20  2564.82 
+
+Coefficients:
+                                                2.5 %     97.5 % Std. Error
+(Intercept)                     -4.026e+04 -4.196e+04 -3.857e+04  8.628e+02
+sexmale                         -3.150e+01 -1.801e+02  1.172e+02  7.564e+01
+smokeryes                        8.137e+02  3.846e+02  1.243e+03  2.183e+02
+age                             -1.011e+01 -1.887e+01 -1.348e+00  4.457e+00
+bmi                             -9.743e+00 -2.315e+01  3.664e+00  6.823e+00
+Claim_Amount                    -1.612e-03 -6.884e-03  3.660e-03  2.683e-03
+past_consultations               4.894e+00 -7.653e+00  1.744e+01  6.384e+00
+num_of_steps                     5.521e-02  5.288e-02  5.754e-02  1.185e-03
+Number_of_past_hospitalizations -1.900e+03 -2.209e+03 -1.591e+03  1.574e+02
+Anual_Salary                     1.546e-05  1.510e-05  1.581e-05  1.817e-07
+                                t value Pr(&gt;|t|)    
+(Intercept)                     -46.665  &lt; 2e-16 ***
+sexmale                          -0.416 0.677332    
+smokeryes                         3.726 0.000219 ***
+age                              -2.268 0.023820 *  
+bmi                              -1.428 0.153950    
+Claim_Amount                     -0.601 0.548244    
+past_consultations                0.767 0.443772    
+num_of_steps                     46.586  &lt; 2e-16 ***
+Number_of_past_hospitalizations -12.075  &lt; 2e-16 ***
+Anual_Salary                     85.090  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 795.8 on 452 degrees of freedom
+Multiple R-squared:  0.994, Adjusted R-squared:  0.9939 
+F-statistic:  8345 on 9 and 452 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb115"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum.lm</span>(modelo_both)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + 
+    smoker + age + bmi, data = obs_sin_aber)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2281.32  -580.54   -16.49   544.60  2573.51 
+
+Coefficients:
+                                                2.5 %     97.5 % Std. Error
+(Intercept)                     -4.036e+04 -4.204e+04 -3.868e+04  8.553e+02
+Anual_Salary                     1.547e-05  1.512e-05  1.582e-05  1.774e-07
+num_of_steps                     5.532e-02  5.301e-02  5.762e-02  1.173e-03
+Number_of_past_hospitalizations -1.909e+03 -2.216e+03 -1.602e+03  1.561e+02
+smokeryes                        8.004e+02  3.744e+02  1.226e+03  2.168e+02
+age                             -1.006e+01 -1.880e+01 -1.334e+00  4.443e+00
+bmi                             -9.569e+00 -2.292e+01  3.777e+00  6.792e+00
+                                t value Pr(&gt;|t|)    
+(Intercept)                     -47.182  &lt; 2e-16 ***
+Anual_Salary                     87.232  &lt; 2e-16 ***
+num_of_steps                     47.146  &lt; 2e-16 ***
+Number_of_past_hospitalizations -12.227  &lt; 2e-16 ***
+smokeryes                         3.692 0.000249 ***
+age                              -2.265 0.023956 *  
+bmi                              -1.409 0.159512    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 794 on 455 degrees of freedom
+Multiple R-squared:  0.994, Adjusted R-squared:  0.9939 
+F-statistic: 1.257e+04 on 6 and 455 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Note que el último modelo presentado cuenta con el mayor <span class="math inline">\(R^2\)</span> ajustado, 99.39%, entre los modelos expuestos. Este criterio refuerza su selección como modelo final para este proyecto.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb117"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a>modelo_both</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + 
+    smoker + age + bmi, data = obs_sin_aber)
+
+Coefficients:
+                    (Intercept)                     Anual_Salary  
+                     -4.036e+04                        1.547e-05  
+                   num_of_steps  Number_of_past_hospitalizations  
+                      5.532e-02                       -1.909e+03  
+                      smokeryes                              age  
+                      8.004e+02                       -1.006e+01  
+                            bmi  
+                     -9.569e+00  </code></pre>
+</div>
+</div>
+<p>Entre lo positivo de este estudio, recalcamos que el modelo final presenta un alto valor de <span class="math inline">\(R^2\)</span>. Sin embargo, el hecho que para todos los modelos que creamos se llegó a concluir no homocedasticidad y residuos con distribución no normal, parece sugerir que el modelo de regresión lineal posiblemente no sea el adecuado para estos datos.</p>
+<p>En todo caso, resulta posible que un modelo lineal generalizado resulte más apropiado para el uso con estos datos, en particular debido a la no homocedasticidad encontrada.</p>
+<p>Respecto al mejor modelo que presentamos, analicemos la relevancia de las covariables que consideró para su definición:</p>
+<ul>
+<li><code>age</code>: Predictor muy relevante con la variable respuesta, pues, como se mencionó en una sección previa, sucede que paciente de mayor edad suelen requerir más cuidados médicos, su salud está en mayor riesgo, por lo que se espera que la aseguradora cubra más el costo de un tratamiento médico. En efecto, tal es el caso, pues el coeficiente asociado a <code>age</code> en el modelo resulta negativo. Así, a mayor edad del paciente, se espera que pague menos (pues la aseguradora cubre mayor costo) por un tratamiento médico.</li>
+<li><code>Anual_Salary</code>: En el caso de pacientes con alto ingreso anual, se espera que sus tratamientos médicos sean también de alto costo. Esto implica que la aseguradora cubra una <strong>menor proporción</strong> del costo médico, pues la cobertura ya resulta alta en base al precio total del procedimiento. Esta relación se hace evidente en el hecho que el coeficiente asociado a <code>Annual_Salary</code> es positivo; es decir, a mayor salario anual, menos costo cubre la aseguradora.</li>
+<li><code>bmi</code>: La relación entre esta covariable y la variable por predecir es muy similar la relación de la edad y la variable por predecir. Por ello, el análisis el análogo, y, simplemente recalcamos que el modelo resalta lo esperado (en base al coeficiente negativo asociado a <code>bmi</code>), pues, a mayor índice de masa corporal (<code>bmi</code>), la aseguradora cubre más del costo, por lo cual el paciente paga menos.</li>
+<li><code>smoker</code>: En el modelo, esta covariable categórica ha sido convertida en 0 y 1; considerando el caso 1 cuando el paciente es fumador. En ese sentido, el coeficiente positivo asociado a esta covariable indice que, si el paciente es fumador, entonces su precio a pagar por tratamiento médico es también mayor, pues la aseguradora cubre <strong>menos</strong> del costo del procedimiento médico.</li>
+<li><code>num_of_steps</code>: Recordemos que esta covariable la interpretamos como un indicador del estado de salud del paciente. Es decir, un mayor valor de <code>num_of_steps</code> representa un mejor estado de salud, de actividad física, del paciente. En ese sentido, es coherente que aquella covariable presente un coeficiente positivo según el modelo. Esto pues, mientras más saludable sea una persona, su gasto por procedimiento médico será mayor; es decir, la aseguradora cubrirá una <strong>menor</strong> cantidad del costo del procedimiento.</li>
+<li><code>Number_of_past_hospitalizations</code>: Esta covariable es posiblemente la que más relación se espera tenga con la variable por predecir. El coeficiente negativo asociada a esta covariable es coherente con el hecho que, a mayor número de hospitalizaciones pasadas, se espera que el seguro cubra una mayor parte del costo del procedimiento médico, por lo cual el gasto del paciente es <strong>menor</strong> por procedimiento médico.</li>
+</ul>
+<p>Como no existe una interpretación física, realista, al caso <code>bmi = 0</code>, no interpretaremos el intercepto asociado al modelo.</p>
 </section>
 <section id="conclusiones" class="level2">
 <h2 class="anchored" data-anchor-id="conclusiones">Conclusiones</h2>
-<!-- 
-  → preparación de datos 
-  → exploración 
-  → modelado
-  → evaluación
-  → diagnóstico
-  → mejora del modelo
-
-1. Introducción
-Presenta el dataset elegido y el objetivo del análisis.
-
-Describe brevemente las variables y el contexto.
-
-2. Limpieza y preparación de los datos (Clase "Start")
-Tratar los valores faltantes:
-
-“Como se resultan dos valores faltantes, se decide de tirar las observaciones correspondientes.”
-
-3. Exploración inicial (Clase 02)
-Gráficos de parejas de variables y comentarios:
-
-Esto te ayuda a entender relaciones lineales potenciales, detectar colinealidad y valores extremos.
-
-
-4. Primer modelo OLS básico (Clase 03)
-Resultados del modelo inicial
-
-
-Plot de valores observados y residuos contra valores estimados
-
-5. Evaluación de significancia (Clase 04)
-
-Tabla de análisis de la varianza (ANOVA)
-
-Estadística F del modelo (p < 5%)
-
-Pruebas t para cada variable (p < 5%)
-
-#####################################################
-
-Comparación de modelos usando el error estándar residual
-
-6. Selección de variables (Clase 05)
-Correlación parcial entre variables
-
-Selección hacia adelante, hacia atrás y stepwise en dos modelos distintos
-
-Comparación de los modelos obtenidos: ¿coinciden? ¿cuál parece mejor?
-
-7. Diagnóstico de supuestos (Clase 06 y 07)
-Buscar puntos aberrantes y repetir el modelo sin ellos
-
-Tests de supuestos clásicos:
-
-Levene (homocedasticidad)
-
-Shapiro-Wilk (normalidad)
-
-Discusión de cuándo es válido el ANOVA, basado en los supuestos
-
-8. Modelo con interacciones y comparación ANOVAs (Clase 08)
-Modelo extendido con interacciones (por ejemplo, con "competición")
-
-Correr y comparar las tres ANOVA (modelo base, con interacción, etc.)
-
-Incluir tests post-hoc si aplica
-
-Evaluar impacto en R², significancia de interacciones, etc.
-
-9. Conclusiones
-¿Qué modelo final seleccionas y por qué?
-
-¿Cuáles variables explican mejor la variable respuesta?
-
-Reflexión crítica sobre las limitaciones (validez de supuestos, tamaño muestral, etc.)
-
--->
-<!-- 
-
-## Start
-
-- Como se resultan dos valores faltantes, se decide de tirar las observaciones correspondientes.
-
-
-## 02
-
-- hacer gráficos de parejas de variables y comentar
-
-## 03
-
-- resultados
-- tabla de analisis de la varianza
-- el apalancamiento de las unidades
-- dos plot de valores observados y residuos contra los valores estimados
-- ¿a través de las tablas de análisis de varianza, ¿cual modelo le
-parece mejor?
-- tirar dos unidades con mayor apalancamiento,
-comentar el cambio, incluyendo gráficos con
-valores estimados y errores en los dos casos
-- mostrar la diferencia entre betas y entre los residuos de los dos modelos.
-
-## 04
-
-- Evaluar si el modelo tiene sentido (Estadística F, umbral 5%) y si todas
-las variables explicativas tienen sentido (t de student, umbral 5%).
-- Considerando el resíduo promedio (Residual standard error), ¿cual
-modelo le parece mejor?
-
-## 05
-
-- ¿cuales son las especialidades mejor explicadas para las demás?
-- ¿cuales las parejas con más alta correlación parcial?
-- modelar dos especialidades con selección para adelante, para atrás y
-stepwise de las demás. ¿Sale el mismo modelo o cual le parece mejor?
-- Reporte shown by teacher, en pregunta 9
-
-## 06
-
-- Si se encuentran puntos aberrantes, recorrer el modelo sin esos y hacer
-de nuevo todos los test.
-- Look for puntos aberrantes, luego recorrer modelo sin ellos
-
-## 07
-
-- qq-plot for residuals
-- correr test de Levine y Shapiro para averiguar la homocedasticidad y la
-normalidad.
-- correr el ANOVA con el modelo lineal si lo test se lo permiten: 
-- Comment del profe: `
-No siempre se cumplen los requisitos de homocedasticidad y normalidad. Esto limita la aplicación de la anova ya que la estimación de la varianza no es más posible. De consecuencia las probabilidades asociadas a las estadísticas solo cuantifican la relevancia de las diferencias observadas, pero no pueden ser empleadas estadísticamente.
-
-De todo modo, las anovas muestran una calidad muy alta, con un R2
-igual a .82, .82, .84 y .85 respectivamente. Este valor mejora mucho cuando se tira el intercepta en el modelo, llegando a 99.7, 99.8, 99.9 y 99.5 respectivamente. La interacción resulta significativa solo para aletas y masa.
-`
-
-## 08
-
-- ver cosa cambia, incluyendo interacciones con la competición y correndo las tres anova
-- incluir los test post-hoc
-
--->
+<ol type="1">
+<li><p><strong>Validación de hipótesis sobre correlaciones</strong>: Se confirmaron las hipótesis respecto al tipo de correlación (positiva o negativa) entre las covariables del modelo final y el precio por pagar por procedimiento médico.</p></li>
+<li><p><strong>Capacidad predictiva del modelo</strong>: El último modelo presentado logró explicar el <strong>99.4%</strong> de la varianza en el costo para el paciente por procedimiento médico, demostrando así una capacidad predictiva alta. Este nivel de precisión sugiere que las variables seleccionadas capturan efectivamente los factores determinantes en la cobertura de seguros médicos.</p></li>
+<li><p><strong>Variables más influyentes identificadas</strong>: El análisis reveló que las variables más significativas para predecir los costos cubiertos son: edad (<code>age</code>), salario anual (<code>Annual_Salary</code>), índice de masa corporal (<code>bmi</code>), hábito de fumar (<code>smoker</code>), número de pasos (<code>num_of_steps</code>), y número de hospitalizaciones previas (<code>Number_of_past_hospitalizations</code>). Estas variables representan factores demográficos, socioeconómicos y de estilo de vida que las aseguradoras consideran en sus decisiones de cobertura.</p></li>
+<li><p><strong>Limitaciones metodológicas detectadas</strong>: A pesar del alto poder predictivo, el modelo no satisface supuestos importante para la regresión lineal, la homocedasticidad y la normalidad de los residuos. Estas limitaciones sugieren que un modelo lineal simple podría no ser la aproximación más adecuada para estos datos.</p></li>
+<li><p><strong>Recomendación de modelos alternativos</strong>: Los hallazgos de heterocedasticidad y no normalidad de residuos indican que un <strong>modelo lineal generalizado (GLM)</strong> podría ser más apropiado para este tipo de datos. Estos enfoques alternativos podrían proporcionar estimaciones más confiables, además de intervalos de confianza más precisos.</p></li>
+<li><p><strong>Necesidad de validación externa</strong>: Aunque el modelo muestra alta precisión en los datos analizados, se recomienda validar estos resultados con datos de diferentes poblaciones, sistemas de salud y contextos geográficos para confirmar su generalización. Recalcamos que no se especifica en la fuente online de estos datos, la proveniencia de las observaciones analizadas.</p></li>
+</ol>
 </section>
 
 </main>
