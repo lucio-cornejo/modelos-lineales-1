@@ -47,7 +47,11 @@ por lo cual la covarianza entre observaciones distantes es también casi cero.
 - En caso se cumple que **$\boldsymbol{\rho}$ sea casi cero**, sería una buena evidencia para
 concluir que se puede emplear un modelo homocedástico.
 
-- **Idea de verosimilitud**: ¿Cuál debe ser el valor del parámetro, tal para que se haga más posible tal valor del parámetro, dados los datos?
+- **Idea de verosimilitud**: 
+¿Cuál debe ser el valor del parámetro, tal para que se haga 
+más **posible**, en caso variable aleatoria **discreto**;
+más **plausible**, en caso variable aleatoria **continua**,
+valor del parámetro, dados los datos?
 
 
 ### Algoritmo FGLS para AR(1)

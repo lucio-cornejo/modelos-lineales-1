@@ -1,0 +1,346 @@
+# Selección de variables y Regularización {-}
+
+## Questions
+
+- Si solo se usa variable respuesta, como covariable, 
+¿cuánto vale el $R^2$? **Vale 0**.
+- ¿El $R^2$ ajustado puede ser negativo? 
+**Sí, en casos como cuando la cantidad de covariales menor que cantidad de observaciones.**
+
+## Fijas
+
+::: {.callout-note}
+### Idea de verosimilitud
+
+¿Cuál debe ser el valor del parámetro, tal para que se haga 
+más **posible**, en caso variable aleatoria **discreto**;
+más **plausible**, en caso variable aleatoria **continua**,
+el valor del parámetro, dados los datos?
+:::
+
+```{r}
+#| label: delete
+print(Sys.Date())
+```
+
+## Criterios de comparación de modelos
+
+**NOTA IMPORTANTE**: Los criterioes AIC, BIC, F-test y los t-test
+**dependen**, (pues suponen) de que los residuos sigan una distribución normal.
+
+### $R^2$ y $R^2$ ajustado
+
+- Recuerde que el $R^2$ ajustado puede ser negativo ... 
+interpretarlo con cuidado.
+
+### AIC
+
+**Criterio de información de Akaike**
+
+- Comparable solamente en modelos con **misma cantidad de covariables**.
+
+$$
+\text{AIC} = -2\log L(\hat{\theta}) + 2k
+$$
+
+
+- Como se busca maximiza la verisimilitud, este criterio considera 
+**mejor aquel modelo con menor AIC**.
+
+### BIC
+
+**Criterio de información Bayesiano**
+
+- Penaliza **más fuerte** la complejidad del modelo, comparado a AIC.
+
+$$
+\text{BIC} = -2\log L(\hat{\theta}) + k\log(n)
+$$
+
+
+
+::: {.callout-note}
+### Nota
+
+(Confirm with sensei)
+
+Cuando se consideran modelos de igual complejidad, número de covariables
+y número de observaciones; los tests vía AIC y BIC producen el mismo resultado.
+
+:::
+
+### Criterio de Mallows ($C_p$)
+
+$$
+C_p = \frac{1}{n} \left(RSS + 2p\hat{\sigma}^2\right)
+$$
+
+- $C_p$ es un estimador insesgado del MSE de prueba,
+si $\hat{\sigma}^2$ es un estimador insesgado de $\sigma^2$.
+
+- **Menor $C_p$ es mejor**.
+
+### Error cuadrático medio (MSE)
+
+$$
+\text{MSE}_\Sigma = \frac{1}{n} ( \mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}} )^\top \Sigma^{-1} ( \mathbf{y} - \mathbf{X} \hat{\boldsymbol{\beta}} )
+$$
+
+- **Validación cruzada**
+  - **k-fold**: Se divide la muestra en $k$ partes, se entrena el modelo en $k - 1$ y se evalúa en la restante.
+  - Evalúa capacidad de generalización del modelo.
+
+### Prueba F global
+
+- Evalúa **si al menos uno de los predictores explica significativamente la variable respuesta**.
+- No te dice cuántas ni cuáles covariables son significativas, en caso se rechaze la hipótesis nula.
+
+### Prueba t para coeficientes
+
+- Evalúa **si un predictor específico tiene efecto significativo sobre la variable respuesta**.
+- Comparado a la prueba análoga en el caso de OLS, la varianza del beta estimado considera
+la matriz de covarianza del modelo.
+
+::: {.callout-note}
+| **Criterio**                    | **¿Qué evalúa?**                       | **¿Preferencia?**        |
+|--------------------------------|----------------------------------------|---------------------------|
+| $R^2$, $R^2_{\text{ajustado}}$ | Proporción explicada                   | Más alto mejor            |
+| AIC / BIC                      | Ajuste penalizado por complejidad      | Más bajo mejor            |
+| MSE / Validación cruzada       | Error de predicción                    | Más bajo mejor            |
+| Pruebas $t$ y $F$              | Significancia estadística              | Valores $p$ bajos         |
+
+:::
+
+
+## Selección de variables y Regularización
+
+### Selección de subconjuntos
+
+Consiste en seleccionar las **covariables más relacionadas con la variable respuesta**.
+
+- Alternativas
+    - Selección del **mejor subconjunto**
+    - Selección de modelos paso a paso (**stepwise**)
+
+### Selección del mejor subconjunto
+
+- Cuando se comparan modelos con **misma cantidad de covariables**, podemos emplear
+el $R^2$ (no ajustado) como criterio de comparación.
+
+- Cuando se comparan los últimos modelos, con diferente cantidad de covariables,
+no emplear $R^2$, sino $R^2$ ajustado o $C_p$, AIC, etc.
+
+- **Un gran espacio de búsqueda puede provocar un sobreajuste a los datos de entrenamiento**.
+
+### Stepwise
+
+- Forward stepwise
+- Backward stepwise
+
+::: {.callout-important}
+
+| Feature                  | Forward Selection | Backward Elimination |
+| ------------------------ | ----------------- | -------------------- |
+| Starts with              | No predictors     | All predictors       |
+| Adds/removes             | Adds only         | Removes only         |
+| Needs full model fit     | ❌ No              | ✅ Yes                |
+| Works when n < p         | ✅ Yes             | ❌ No                 |
+| Safer in high dimensions | ✅                 | ❌                    |
+| Can miss interactions    | ✅ Yes             | ❌ Less likely        |
+| Risk with collinearity   | Lower             | Higher               |
+
+:::
+
+::: {.callout-important}
+
+| Scenario                                     | Prefer   |
+| -------------------------------------------- | -------- |
+| **High dimensionality (many predictors)**    | Forward  |
+| **n < p (more variables than observations)** | Forward  |
+| **Strong prior knowledge of important vars** | Backward |
+| **Want to see joint variable effects early** | Backward |
+| **Low multicollinearity, sufficient data**   | Backward |
+
+:::
+
+
+## Ejemplos prácticos
+
+```{r}
+library(ISLR)
+library(ggplot2)
+
+data("Hitters")
+names(Hitters)
+str(Hitters)
+head(Hitters)
+dim(Hitters)
+
+# Eliminando datos perdidos
+library(dplyr)
+Hitters = Hitters %>%
+  na.omit
+```
+
+### Mejores Subconjuntos
+
+```{r}
+library(leaps)
+
+# Identificar el mejor modelo para un determinado numero de predictores
+# (por defecto se muestra subconjuntos hasta el tamanho 8)
+regfit.full=regsubsets(Salary~.,Hitters)
+sum8 = summary(regfit.full)
+sum8
+
+# Para visualizar y evaluar cual subconjunto es mejor
+summary(regfit.full)$adjr2   # R^2 ajustado
+summary(regfit.full)$bic     # Criterio de información bayesiano
+summary(regfit.full)$cp      # Estadístico Cp de Mallows
+
+which.min(sum8$bic) # Mejor modelo en base a BIC
+which.max(sum8$adjr2) # Mejor modelo en base a R2adj
+
+# El mejor modelo basado en BIC es 6
+mod6 <- which.min(sum8$bic)
+sum8$which[mod6, ]
+
+# Covariables del modelo 6 basado en BIC
+vars6 <- names(which(sum8$which[mod6, ] == TRUE))
+vars6
+```
+
+```{r}
+# Incrementando el tamaho hasta 19
+regfit.full=regsubsets(Salary~.,data=Hitters,nvmax=19)
+reg.summary=summary(regfit.full)
+reg.summary
+names(reg.summary)
+
+#  R2 para cada tamanho de subconjunto
+reg.summary$rsq
+
+# Grafica para los R2 (no apropiado para seleccionar modelos)
+library(ggvis)
+rsq <- as.data.frame(reg.summary$rsq)
+names(rsq) <- "R2"
+rsq %>% 
+  ggvis(x=~ c(1:nrow(rsq)), y=~R2 ) %>%
+  layer_points(fill = ~ R2 ) %>%
+  add_axis("y", title = "R2") %>% 
+  add_axis("x", title = "Número de Variables")
+
+# Grafica comparativa para la RSS, el R2 ajustado, Cp y BIC
+par(mfrow=c(2,2))
+plot(reg.summary$rss,xlab="Numero de Variables",ylab="RSS",type="l")
+
+plot(reg.summary$adjr2,xlab="N?mero de Variables",ylab="R2 Ajustado",type="l")
+which.max(reg.summary$adjr2)
+points(11,reg.summary$adjr2[11], col="red",cex=2,pch=20)
+
+plot(reg.summary$cp,xlab="Numero de Variables",ylab="Cp",type='l')
+which.min(reg.summary$cp)
+points(10,reg.summary$cp[10],col="red",cex=2,pch=20)
+
+plot(reg.summary$bic,xlab="Numero de Variables",ylab="BIC",type='l')
+which.min(reg.summary$bic)
+points(6,reg.summary$bic[6],col="red",cex=2,pch=20)
+par(mfrow=c(1,1))
+
+# Variables seleccionadas para el mejor modelo 
+plot(regfit.full,scale="r2")
+plot(regfit.full,scale="adjr2")
+plot(regfit.full,scale="Cp")
+plot(regfit.full,scale="bic")
+
+# Coeficientes asociados al mejor modelo con 6 variables segun BIC
+coef(regfit.full,6)
+
+# El mejor modelo basado en BIC
+modbic <- which.min(reg.summary$bic)
+reg.summary$which[modbic, ]
+
+# Covariables del modelo 6 basado en BIC
+varsbic <- names(which(reg.summary$which[modbic, ] == TRUE))
+varsbic
+```
+
+### Seleccion paso a paso hacia adelante
+
+```{r}
+regfit.fwd <- regsubsets(
+  Salary ~ .,
+  data = Hitters,
+  nvmax = 19,
+  method = "forward"
+)
+summary(regfit.fwd)
+# Mejor modelo segun el Cp
+plot(regfit.fwd, scale = "Cp")
+```
+
+### Selección paso a paso hacia atrás
+
+```{r}
+regfit.bwd <- regsubsets(
+  Salary ~ .,
+  data = Hitters,
+  nvmax = 19,
+  method="backward"
+)
+summary(regfit.bwd)
+
+# Comparando el mejor modelo con 6 variables
+coef(regfit.full,6)
+coef(regfit.fwd,6)
+coef(regfit.bwd,6)
+
+# Comparando el mejor modelo con 7 variables
+coef(regfit.full,7)
+coef(regfit.fwd,7)
+coef(regfit.bwd,7)
+```
+
+### Seleccion de modelos usando el esquema de validación
+
+```{r}
+library(dplyr)
+Hitters = Hitters %>%
+  na.omit
+
+set.seed(1)
+train <- sample(c(TRUE,FALSE), nrow(Hitters),rep=TRUE)
+test <- (!train)
+
+# Mejores subconjuntos en los datos de entrenamiento
+regfit.best <- regsubsets(
+  Salary ~ .,
+  data = Hitters[train,],
+  nvmax = 19
+)
+
+# Matriz de disenho para las regresiones
+# (regsubsets no tiene metodo predict)
+test.mat <- model.matrix(Salary~.,data=Hitters[test,])
+
+# Calcular el error en el conjunto de validacion
+val.errors <- rep(NA,19)
+
+# iterar para cada tama?o i
+for(i in 1:19) {
+  # Extraer el vector de predictores del mejor modelo con i predictores
+  coefi=coef(regfit.best,id=i)
+  
+  # Realiza las predicciones multplicando los coeficientes por la matriz de dise?o 
+  pred=test.mat[,names(coefi)]%*%coefi
+  
+  # Calculo del MSE
+  val.errors[i] <- mean((Hitters$Salary[test]-pred)^2)
+}
+val.errors
+
+# Encontrar el modelo con el menor MSE 
+min = which.min(val.errors)
+min
+coef(regfit.best, min)
+```

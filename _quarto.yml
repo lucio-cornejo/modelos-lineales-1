@@ -29,6 +29,10 @@ book:
       chapters: 
         - apuntes/clase-10.qmd
 
+    - part: "Semana 11"
+      chapters: 
+        - apuntes/clase-11.qmd
+
 format:
   html:
     theme: cosmo
