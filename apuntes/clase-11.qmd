@@ -1,4 +1,4 @@
-# Selección de variables y Regularización {-}
+# Selección de variables {-}
 
 ## Questions
 
@@ -17,11 +17,6 @@ más **posible**, en caso variable aleatoria **discreto**;
 más **plausible**, en caso variable aleatoria **continua**,
 el valor del parámetro, dados los datos?
 :::
-
-```{r}
-#| label: delete
-print(Sys.Date())
-```
 
 ## Criterios de comparación de modelos
 

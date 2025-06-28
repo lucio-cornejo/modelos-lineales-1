@@ -1,0 +1,343 @@
+# Regularización {-}
+
+
+::: {.callout-important}
+- Tanto Ridge como Lasso **suponen normalidad de los residuos**.
+- Para los métodos de Ridge y Lasso no contamos con tests para saber
+qué tan significativos son las covariables en el modelo. 
+
+- No contamos con una forma de la **distribución de los estimadores** $\beta$.
+Esto se complica debido a que el estimador es **sesgado**.
+:::
+
+## Ejercicios
+
+- Calcular la varianza de Ridge.
+
+
+## Introducción
+
+- Si se permite un pequeño sesgo en el estimador de $\beta$,
+es posible reducir su varianza, lo que puede dar lugar a un ECM menor que 
+el del estimador insesgado $\hat{\beta}$ de MCO.
+
+- Esto se traduce en estimadores más estables y 
+en intervalos de confianza más angostos.
+
+
+
+## Regresion Ridge
+
+### Observaciones
+
+- Se **mantienen todos los predictores**, pero se **contraen hacia cero** sus coeficientes,
+sin que lleguen exactamente a cero. Esto reduce la varianza de las estimaciones.
+
+- Se **penalizan los coeficientes grandes**, forzándolos a ser más pequeños que los
+estimados por mínimos cuadrados.
+
+- El objetivo es mejorar la generalización del modelo.
+
+::: {.callout-important}
+- Eficiente cuando tienes que emplear todas las covariables.
+- Eficiente cuando existe alta dimensionalidad.
+- Eficiente cuando existe multicolinealidad entres los datos.
+:::
+
+
+::: {.callout-note}
+### Definición
+
+El **estimador de Ridge** es la solución de 
+
+$$
+\hat{\beta}^{\text{ridge}} = \arg\min_{\beta} \left\{ (y - X\beta)^{\top}(y - X\beta) + \lambda \beta^{\top} \beta \right\}
+$$
+
+donde $\lambda \geq 0$ es conocido como el parámetro de regularización o penalización.
+:::
+
+
+::: {.callout-caution}
+La penalización $\lambda$ reducirá todos los coeficientes hacia cero,
+pero no establecerá ninguno de ellos exactamente en cero (salvo $\lambda =\infty$).
+
+Esto puede no ser un problema para la precisión de la predicción, 
+pero **dificulta la interpretación del modelo para p grande**.
+:::
+
+Para un $\lambda$ fijo, deseamos que los $\beta$ sean más pequeños (su penalización),
+para tener menor sesgo y varianza del modelo.
+
+## Regresion LASSO
+
+- Estima algunos parámetros a **exactamente cero**.
+
+::: {.callout-important}
+- Eficiente para seleccionar qué covariables emplear para el modelo.
+- Eficiente para tener un modelo menos complejo, **más interpretable**.
+:::
+
+
+::: {.callout-note}
+### Definición
+
+Sea el modelo lineal $y_i = \mathbf{x}_i^\top \boldsymbol{\beta} + \varepsilon_i$.
+El estimador de Lasso (Least Absolute Shrinkage and Selection Operator) se define como la solución de
+
+$$
+\hat{\boldsymbol{\beta}}^{\text{lasso}} = \arg\min_{\boldsymbol{\beta}} \left\{ \sum_{i=1}^{n} (y_i - \mathbf{x}_i^\top \boldsymbol{\beta})^2 + \lambda \sum_{j=1}^{p} |\beta_j| \right\}
+$$
+
+donde $\lambda$ es un parámetro de precisión. Si $\lambda = 0$, regresión lineal tradicional $(\hat{\boldsymbol{\beta}}^{\text{lasso}} = \hat{\boldsymbol{\beta}})$.
+
+:::
+
+
+::: {.callout-note}
+### No visto en clase
+
+| Value of $p$ | Regularization Behavior                                      | When it's useful                                                                                               |
+| ------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| $p = 2$      | Smooth shrinkage of all coefficients                         | When multicollinearity is present and you want all variables retained with small coefficients.                 |
+| $p = 1$      | Sparsity (some coefficients set to zero)                     | When feature selection is important, or many features are irrelevant.                                          |
+| $p < 1$      | **Stronger** sparsity than Lasso                             | When only a few features are truly relevant, but you're willing to trade off convexity.                        |
+| $p > 2$      | **Heavier penalty** on large coefficients, but less sparsity | May be useful when you want to heavily penalize outliers in coefficients but not induce sparsity. Rarely used. |
+
+:::
+
+
+## Ejemplos prácticos
+
+```{r}
+library(ISLR)
+library(ggplot2)
+
+data("Hitters")
+names(Hitters)
+str(Hitters)
+head(Hitters)
+dim(Hitters)
+
+# Eliminando datos perdidos
+library(dplyr)
+Hitters = Hitters %>%
+  na.omit
+
+x=model.matrix(Salary~.,Hitters)[,-1] # eliminar la primera columna
+# dejando solo los predictores
+y=Hitters$Salary
+```
+
+### Regresión Ridge
+
+```{r}
+library(glmnet)
+
+# Busqueda de valores para lambda (desde 10^10 hasta 10^-2 )
+grid=10^seq(10,-2,length=100)
+grid
+```
+
+```{r}
+# Ajustar la regresion ridge
+# alpha=0 indica regresión ridge; los predictores son estandarizados por defecto.
+ridge.mod=glmnet(x,y,alpha=0,lambda=grid) # por defecto standardize = TRUE
+ridge.mod
+
+# Dimension de la matriz que almacena los coeficientes de la regresion ridge
+dim(coef(ridge.mod)) #Una fila por cada predictor y una colunma por valor de lambda
+
+# Grafica de los coeficientes 
+plot(ridge.mod,  xvar = "lambda", label = TRUE)      
+```
+
+- `%Dev`: 
+  - Porcentaje de explicación de esas covariables en el modelo
+  - Similar a un $R^2$.
+  - Buscamos un **balance** entre eso valor y $\lambda$.
+
+```{r}
+# Se espera que los coeficientes se contraigan (tiendan a cero)
+# a medida que lambda se incrementa.
+ridge.mod$lambda[50] # Mostrar el valor 50 de lambda
+coef(ridge.mod)[,50] # Mostrar los coeficientes asociados con el valor 50 de lambda
+sqrt(sum(coef(ridge.mod)[-1,50]^2)) # Calcular la norma L2 (suma de cuadrados)
+
+# Comparando con el valor 60
+ridge.mod$lambda[60]
+coef(ridge.mod)[,60]
+sqrt(sum(coef(ridge.mod)[-1,60]^2))
+
+# Los coeficientes para lambda = 50.
+predict(ridge.mod,s=50,type="coefficients")[1:20,]
+```
+
+
+```{r}
+# Dividiendo el conjunto de datos para estimar el error de test
+set.seed(1)
+train=sample(1:nrow(x), nrow(x)/2)
+test=(-train)
+y.test=y[test]
+
+# Estimamos la regresion ridge en el conjunto de entrenamiento 
+ridge.mod=glmnet(x[train,],y[train],alpha=0,lambda=grid, thresh=1e-12)
+
+# Evaluamos el MSE en el conjunto de test para un lambda = 4
+ridge.pred=predict(ridge.mod,s=4,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+
+# Comparando con el MSE del modelo nulo (media)
+mean((mean(y[train])-y.test)^2)
+```
+
+
+```{r}
+# Esto se aproxima a la predicción del modelo nulo cuando lambda tiende infinito.
+ridge.pred=predict(ridge.mod,s=1e10,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+
+# Comparando con MCO que equivale a ridge con lambda = 0.
+ridge.pred=predict(ridge.mod,s=0,newx=x[test,],exact=T,x=x[train,],y=y[train])
+mean((ridge.pred-y.test)^2)
+lm(y~x, subset=train)
+predict(ridge.mod,s=0,exact=T,type="coefficients",x=x[train,],y=y[train])[1:20,]
+```
+
+#### Validación cruzada
+
+```{r}
+# Realizando la validacion cruzada para seleccionar el valor de lambda
+set.seed(1)
+
+# Ajustar la regresion ridge a los datos de entrenamiento
+cv.out=cv.glmnet(x[train,],y[train],alpha=0) 
+bestlam=cv.out$lambda.min # elegir el valor de lambda que minimiza el MSE
+bestlam
+
+# Graficando el MSE por cv en funcion de lambda
+plot(cv.out)
+
+ridge.pred=predict(ridge.mod,s=bestlam,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+
+# Modelo final (con todos los datos)
+out=glmnet(x,y,alpha=0)
+predict(out,type="coefficients",s=bestlam)[1:20,]
+
+# Nota: Para elegir el valor de lambda segun la regla de 1 error estandar
+# lambda.1se corresponde al valor de lambda más grande cuyo error
+# de validación está dentro de 1 error estándar del mínimo.
+cv.out$lambda.1se 
+```
+
+### Regresión Lasso
+
+```{r}
+# Ajustar el modelo a los datos de entrenamiento
+lasso.mod=glmnet(x[train,],y[train],alpha=1,lambda=grid)
+plot(lasso.mod, xvar = "lambda", label = TRUE) 
+```
+
+```{r}
+# Realizando la validacion cruzada para seleccionar el valor de lambda
+set.seed(1)
+
+# Ajustar el modelo a los datos de entrenamiento 
+cv.out=cv.glmnet(x[train,],y[train],alpha=1)
+plot(cv.out)
+
+# Seleccionar el valor de lambda que minimiza el MSE
+bestlam=cv.out$lambda.min
+bestlam
+
+# Usar el valor de lambda para predecir los datos de test
+lasso.pred=predict(lasso.mod,s=bestlam,newx=x[test,])
+
+# MSE de test
+mean((lasso.pred-y.test)^2)
+
+# Estimacion del modelo final (todos los datos)
+out=glmnet(x,y,alpha=1,lambda=grid)
+lasso.coef=predict(out,type="coefficients",s=bestlam)[1:20,]
+lasso.coef
+
+# Coeficientes distintos de 0
+lasso.coef[lasso.coef!=0]
+```
+
+
+## Regresión robusta
+
+### Introducción
+
+- El método de MCO no es tan eficiente en caso **existan valores atípicos** influyentes.
+
+- En la práctica, la distribución de la variable de respuesta puede no ser normal
+y presentar valores atípicos que afectan el modelo de regresión
+
+- Cuando la distribución tiene colas largas, se generan observaciones extremas
+que influyen en exceso sobre los estimadores por mínimos cuadrados, sesgando
+la ecuación de regresión.
+
+- La regresión robusta surge como una alternativa para enfrentar estas limitaciones, ofreciendo estimadores menos sensibles a valores atípicos y estructuras de
+error no normales.
+
+::: {.callout-note}
+### Definición
+
+La regresión robusta es una técnica de estimación que busca **limitar la influencia de valores atípicos** en un modelo de regresión, produciendo estimadores más estables cuando los datos no cumplen los supuestos ideales de los mínimos cuadrados.
+:::
+
+Tipos de valores atípicos:
+
+- **Valor atípico de regresión**: 
+Es un punto que se desvía de la regresión lineal que se determina con las $n-1$
+observaciones restantes.
+
+- **Valor atípico residual**: 
+Es un punto que tiene un residual estandarizado o studentizado grande, cuando se
+usa en la muestra de observaciones con que se ajusta un modelo.
+
+- **Valor atípico en el espacio X**:
+Es una observación remota en una o más coordenadas $x$.
+
+- **Valor atípico en el espacio Y**:
+Es una observación con coordenada $y$ inusual. El efecto que tiene la observación sobre el modelo de regresión depende de su coordenada $x$ y de la disposición general de las demás observaciones en la muestra.
+
+- **Valores atípicos en los espacios X y Y**:
+Es una observación que es atípica en sus coordenadas $x$ e $y$ al mismo tiempo. El efecto de esos puntos depende por completo de la disposición de las demás observaciones de la muestra.
+
+::: {.callout-important}
+
+- Este modelo considera una distribución diferente para los residuos, 
+una con **colas más pesadas**.
+
+- Considere como ejemplo minimizar la suma de los **valores absolutos** de los errores.
+
+- Recuerde: EMV aplicado al modelo con errores de normal, conduce al MCO.
+
+- Nótese que el criterio del **error absoluto ponderaría los valores atípicos con mucho menos severidad que los MCO**.
+
+:::
+
+::: {.callout-note}
+### Definición
+
+Los estimadores de $\beta$ se obtienen *minimizando* una función particular en $\beta$:
+
+$$\arg \min_{\beta} \sum_{i=1}^{n} \rho(\epsilon_i) = \arg \min_{\beta} \sum_{i=1}^{n} \rho(y_i - \mathbf{x}_i^{\top} \beta)$$
+
+donde $\rho$ es una función de la *contribución* de cada residuo a la función objetivo. Un $\rho$ razonable debe cumplir las siguientes propiedades:
+
+- Siempre no negativo: $\rho(\epsilon) \geq 0$.
+
+- Igual a cero cuando su argumento es cero: $\rho(0) = 0$.
+
+- Simétrico: $\rho(\epsilon) = \rho(-\epsilon)$, aunque en algunos problemas la simetría es indeseable.
+
+- Monótono en $|\epsilon_i|$: $\rho(\epsilon_i) \geq \rho(\epsilon_i')$ para $|\epsilon_i| > |\epsilon_i'|$.
+
+:::
+
