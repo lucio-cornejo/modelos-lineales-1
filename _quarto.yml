@@ -41,6 +41,10 @@ book:
       chapters: 
         - apuntes/clase-13.qmd
 
+    - part: "Examen final escrito"
+      chapters: 
+        - "examen_final/paper-exam/index.qmd"
+
 format:
   html:
     theme: cosmo
