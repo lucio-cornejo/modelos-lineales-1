@@ -37,6 +37,10 @@ book:
       chapters: 
         - apuntes/clase-12.qmd
 
+    - part: "Semana 13"
+      chapters: 
+        - apuntes/clase-13.qmd
+
 format:
   html:
     theme: cosmo

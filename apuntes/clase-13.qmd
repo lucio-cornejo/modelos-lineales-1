@@ -1,0 +1,303 @@
+# Regresión robusta {-}
+
+## Examen final
+
+- El examen es con acceso solo a Paideia.
+- Se permitirá el uso de `R`, pero se responde en hoja,
+no es necesario presentar tal código.
+- **Se tiene que usar la máquina que está acá**.
+- Escribirle el martes al profe para ir el jueves a las 6pm.
+
+## Trabajo final
+
+- Si al final usamos regresión robusto como mejor modelo, 
+entonces title debería ser sth like "Regresión robusta aplicada a ...".
+
+- No es necesario cubrir todos los aspectos del curso, 
+sino lo requerido para el trabajo propuesto.
+
+- No necesario que sea un dataset popular, pero sí una real.
+
+- No se requiere que el mejor modelo sea vía robusta, 
+sino justificar cuál resulta el mejor modelo, even si al final es OLS.
+
+
+::: {.callout-important}
+## Fijas
+
+- Cuando ajustamos OLS para un conjuntos de datos, y resulta que 
+los residuos **no tienen** una distribución como la supuesta (normalidad),
+entonces, **las conclusiones del modelo pueden estar equivocadas**.
+
+:::
+
+
+## Aplicación
+
+```{r}
+# Cargar librería necesaria
+library(MASS)  # Contiene la función rlm()
+
+# Datos de ejemplo: relación entre peso y altura de un grupo de estudiantes
+# Incluimos un valor atípico para mostrar la robustez
+altura <- c(160, 165, 170, 175, 180, 185, 190, 200)
+peso <- c(55, 60, 65, 70, 75, 80, 85, 150)  # 150 es un outlier
+
+# Ajuste usando Mínimos Cuadrados Ordinarios (OLS)
+modelo_ols <- lm(peso ~ altura)
+summary(modelo_ols)
+
+# Ajuste usando Regresión Robusta (Huber M-estimator)
+modelo_robusto <- rlm(peso ~ altura)
+summary(modelo_robusto)
+
+# Comparar coeficientes
+coef(modelo_ols)
+coef(modelo_robusto)
+
+# Graficar resultados
+plot(altura, peso, pch = 19, col = "black", main = "Comparación OLS vs Regresión Robusta")
+abline(modelo_ols, col = "red", lwd = 2)     # Recta OLS
+abline(modelo_robusto, col = "blue", lwd = 2) # Recta Robusta
+legend("topleft", legend = c("OLS", "Robusta"), col = c("red", "blue"), lwd = 2)
+```
+
+### Datos `stackloss`
+
+
+```{r}
+data(stackloss)
+
+# Ver resumen
+head(stackloss)
+
+# Ajuste OLS
+ols <- lm(stack.loss ~ ., data = stackloss)
+
+# Ajuste robusto Huber
+library(MASS)
+robust <- rlm(stack.loss ~ ., data = stackloss)
+
+summary(ols)
+summary(robust)
+
+
+# Residuos OLS y robustos
+stackloss$res_ols <- residuals(ols)
+stackloss$res_robust <- residuals(robust)
+
+
+
+
+# 1) Gráfico de dispersión: stack.loss vs Air.Flow
+plot(stackloss$Air.Flow, stackloss$stack.loss,
+     pch = 19, col = "black",
+     main = "Stack Loss vs Air Flow",
+     xlab = "Air Flow",
+     ylab = "Stack Loss")
+abline(lm(stack.loss ~ Air.Flow, data = stackloss), col = "red", lwd = 2)
+abline(rlm(stack.loss ~ Air.Flow, data = stackloss), col = "blue", lwd = 2)
+legend("topleft",
+       legend = c("OLS", "Robusta"),
+       col = c("red", "blue"),
+       lwd = 2)
+
+
+
+# 2) Gráfico de residuos OLS
+plot(ols$fitted.values, stackloss$res_ols,
+     main = "Residuos OLS",
+     xlab = "Valores ajustados OLS",
+     ylab = "Residuos",
+     pch = 19)
+abline(h = 0, col = "red")
+# Indicar observaciones con residuos grandes (e.g., > 2 std)
+outliers <- which(abs(stackloss$res_ols) > 2.5)
+points(ols$fitted.values[outliers], stackloss$res_ols[outliers],
+       col = "red", pch = 19)
+
+
+
+
+# 3) Gráfico de residuos robustos
+plot(fitted(robust), stackloss$res_robust,
+     main = "Residuos Regresión Robusta",
+     xlab = "Valores ajustados Robustos",
+     ylab = "Residuos",
+     pch = 19)
+abline(h = 0, col = "blue")
+# Indicar observaciones con residuos grandes (e.g., > 2.5 std)
+outliers <- which(abs(stackloss$res_robust) > 2.5)
+points(robust$fitted.values[outliers], stackloss$res_robust[outliers],
+       col = "red", pch = 19)
+```
+
+### Ejercicio pendiente
+
+Replicar este análisis, para el conjunto de datos `Prestige`.
+
+```{r}
+#| eval: false
+library(carData)
+data(Prestige)
+
+head(Prestige)
+```
+
+
+## Aplicaciones de diseños experimentales
+
+### Objetivos
+
+- Metodizar la recolección, manipulación y análises de datos.
+- Controlar la variabilidad y optimiza la precisión de las estimaciones.
+
+### Elementos principales
+    
+- **Tratamientos, unidades y variables**: Factores a comparar, sujetos de estudio y características medidas.
+
+- **Aleatorización y replicación**: Asignación aleatoria y repetición para evitar sesgos y mejorar precisión.
+
+- **Control y modelo estadístico**: Estrategias para reducir variación no deseada y marco matemático para analizar los efectos.
+
+### Tipos de diseños experimentales
+
+- **Diseño completamente aleatorizado (DCA)**: Los tratamientos se asignan de forma totalmente aleatoria a las unidades experimentales. Es el diseño más sencillo
+y se usa cuando no se esperan fuentes de variación adicionales.
+
+- **Diseño en bloques completos al azar (DBCA)**: Las unidades se agrupan en bloques homogéneos para controlar una fuente conocida de variación, y dentro de
+cada bloque los tratamientos se asignan aleatoriamente.
+
+### DCA
+
+#### ANOVA para un DCA
+
+### Modelo para un DCA con covariable
+
+- **¿Por qué se centra la covariable?**: Centrar la covariable alrededor de su
+media mantiene µ como la media ajustada de la respuesta cuando la covariable
+está en su valor promedio y reduce la correlación entre efectos de tratamiento y
+covariable.
+
+- **Propósito del modelo**: Incluir una covariable ajusta la comparación de tratamientos al eliminar variabilidad atribuible a diferencias sistemáticas, aumentando así la precisión de los estimadores
+
+### Ejemplo de aplicación
+
+```{r}
+data(InsectSprays)
+head(InsectSprays)
+
+str(InsectSprays)
+table(InsectSprays$spray)
+
+summary(InsectSprays)
+
+# Media y desviación estándar por grupo
+library(dplyr)
+
+InsectSprays %>%
+  group_by(spray) %>%
+  summarise(
+    n = n(),
+    media = mean(count),
+    sd = sd(count),
+    min = min(count),
+    max = max(count)
+  )
+
+
+library(ggplot2)
+
+ggplot(InsectSprays, aes(x = spray, y = count)) +
+  geom_boxplot() +
+  labs(title = "Conteo de insectos por tipo de spray",
+       x = "Tipo de Spray",
+       y = "Número de insectos") 
+
+
+# Ajustar modelo de ANOVA de un factor
+#############################
+# H0: no hay diferencia entre los tipos de spray
+modelo <- aov(count ~ spray, data = InsectSprays)
+summary(modelo)
+```
+
+**Notamos diferencias significativas entre al menos dos tipos de spray**.
+**Por lo menos existe una media diferente del resto.**
+
+
+```{r}
+# Pruebas post hoc (Tukey)
+#############################
+# Prueba de comparaciones múltiples de Tukey
+TukeyHSD(modelo)
+
+```
+
+Esto indica qué pares de sprays son significativamente diferentes.
+Menor `p ajustado`, implica más significativa, pero debe ser menor que
+el threshold que establezcamos.
+
+Dentro de los estadísticamente diferentes, se compara en qué caso
+sucede la mayor diferencia (absoluta).
+
+Así, la media de **F** es la más sigificativa.
+
+```{r}
+# Diagnóstico de supuestos del modelo
+#############################
+#Residuos vs valores ajustados)
+plot(modelo, which = 1)
+
+#Normalidad de residuos (Q-Q plot)
+plot(modelo, which = 2)
+```
+
+```{r}
+# Prueba de normalidad de residuos
+shapiro.test(residuals(modelo))
+```
+
+Hay evidencia significativa para rechazar la hipótesis de normalidad de los residuos.
+
+```{r}
+#Homogeneidad de varianzas (prueba de Levene)
+# library(car)
+# leveneTest(count ~ spray, data = InsectSprays)
+
+
+#No Normalidad de residuos y Homogeneidad de varianzas
+#########################
+#1. ANOVA paramétrico (basado en F) puede producir resultados no confiables
+#2. Si n por grupo son similares y suficientemente grandes (n ≥ 30),
+# el ANOVA es robusto ante cierta desviación de normalidad (TLC).
+# Pero si las varianzas son muy heterogéneas y
+# los tamaños de muestra son muy desiguales, sí es grave.
+
+
+InsectSprays$log_count <- log(InsectSprays$count + 1) # +1 si hay ceros
+modelo2 <- aov(log_count ~ spray, data = InsectSprays)
+summary(modelo2)
+```
+
+Hay evidencia significativa para rechazar la hipótesis de 
+homogeneidad de varianza.
+
+::: {.callout-important}
+### Posible solución
+
+Como fallaron ambos tests, ambas hipótesis,
+se recomienda **transformar** las covariables y/o variable respuesta,
+sea por medio de función de logaritmo, raiz cuadrada, etc.
+
+:::
+
+```{r}
+plot(modelo2, which = 1)
+plot(modelo2, which = 2)
+shapiro.test(residuals(modelo2))
+
+#Homogeneidad de varianzas (prueba de Levene)
+# library(car)
+# leveneTest(log_count ~ spray, data = InsectSprays)
+```
