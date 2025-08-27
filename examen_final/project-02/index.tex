@@ -1,0 +1,772 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\author{}
+\date{}
+
+\begin{document}
+
+
+\begin{titlepage}
+\centering
+{\bfseries\large Pontificia Universidad Católica del Perú \par}
+\vspace{1cm}
+{\scshape\large Maestría en Estadística \par}
+\vspace{1cm}
+{\scshape\large Trabajo de Aplicación: Predicción de gasto reducido por seguro médico \par}
+
+\rule{150mm}{0.1mm}\\  
+\vspace{3cm}
+{\large Curso: Modelos lineales 1 \par}
+\vfill
+{\large Autor: \par}
+{\large Lucio Enrique Cornejo Ramírez \par}
+\vfill
+{\large Profesores: \par}
+{\large Camiz Sergio \par}
+{\large Alex de la Cruz Huayanay \par}
+\vfill
+{\large Julio 2025 \par}
+\end{titlepage}
+
+\renewcommand{\contentsname}{Tabla de Contenidos}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+
+\subsubsection{Marco del problema}\label{marco-del-problema}
+
+Entre los costos que más desastibilizan económicamente a las personas,
+se encuentra el pago por procedimientos médicos. Estos precios pueden
+variar en gran medida dependiendo de características del paciente, como
+detallaremos más adelante.
+
+En ese sentido, resulta de gran valor predecir adecuadamente el costo
+que un seguro médico cubrirá, respecto a un procedimiento médico. Para
+un paciente, aquella predicción puede servir para que planifique qué
+tanto sería desestabilizado económicamente debido a algún tipo de
+procedimiento particular. Por otro lado, también para las aseguradoras
+resulta útil aquellas predicciones, ya que pueden anticipar qué tanto
+dinero estarían perdiendo por el monto a cubrir de la operación; además,
+con ese conocimiento pueden monitorear mejor qué pedidos de cobertura
+resultan anómalos, potencialmente fraudulentos.
+
+\subsubsection{Plan de modelamiento}\label{plan-de-modelamiento}
+
+Anteriormente, hemos planteado como variable por predecir a la cantidad
+monetaria que la aseguradora de un paciente cubrirá debido a un
+procedimiento médico. Note que aquel monto está muy relacionado al
+precio que paga el paciente luego que el seguro descuenta parte del
+costo del procedimiento médico \ldots{} ese monto, que denominaremos
+\texttt{charges}, se intentará predecir.
+
+Asimismo, vale recalcar la influencia de los gastos del hospital debido
+al procedimiento médico, variable que denotaremos
+\texttt{Hospital\_expenditure}, sobre \texttt{charges}.
+
+Para el modelamiento, se considerará además las siguientes
+características del paciente:
+
+\begin{itemize}
+\tightlist
+\item
+  Sexo (\texttt{age})
+\item
+  Si fuma o no (\texttt{smoker})
+\item
+  Región de la que provee (\texttt{region})
+\item
+  Edad (\texttt{age})
+\item
+  Índice de masa corporal (\texttt{bmi})
+\item
+  Cantidad de hijos e hijas (\texttt{children})
+\item
+  Costo médico que pagaría en caso no se aplicase seguro médico
+  (\texttt{Claim\_Amount})
+\item
+  Número de procedimientos pasados (\texttt{past\_consultations})
+\item
+  Número de pasos que realizó en cierto día (\texttt{num\_of\_steps})
+\item
+  Número de veces que ha sido hospitalizado
+  (\texttt{Number\_of\_past\_hospitalizations})
+\item
+  Salario anual (\texttt{Anual\_Salary})
+\end{itemize}
+
+\section{Metodología}
+
+\subsubsection{Datos/Observaciones}\label{datosobservaciones}
+
+Las observaciones que consideraremos para este proyecto fueron
+descargadas de este sitio
+\href{https://www.kaggle.com/datasets/shubhamsingh57/ml-model-practice-linear-regression/data}{web}.
+
+Estos datos son de distintos pacientes que recibieron algún tipo de
+tratamiento médico, de los cuales se tienen variables recopiladas, como
+edad, sexo, si fuma o no, etc. Así, descartamos que los datos consistan
+de una serie de tiempo.
+
+No obstante, aquella página web no provee información más específica
+sobre el origen de los datos. Por ejemplo, si han sido recopilados en un
+único hospital, o en diversos hospitales, pero de qué país, etc.
+
+Aún así, en esta investigación, no solo se considera la predicción de la
+variable mencionada, sino también cómo es que influyen las variables que
+emplearemos como regresores, en la predicción final. Por ejemplo, si su
+relación es directa o inversamente proporcional.
+
+A continuación justificamos el posible uso de los caracteres presentes
+en los datos, como covariables:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Sexo}: Debido al riesgo y costos distintos entre hombres y
+  mujeres, para ciertos tipos de operaciones; por ejemplo, parto.
+\item
+  \textbf{Si fuma o no}: Pues fumar aumenta la probabilidad de
+  desarrollar complicaciones médicas
+\item
+  \textbf{Región de la que provee}: Ya que el costo de un procedimiento
+  médico puede variar mucho por región, así que también varía cuánto
+  cubriría una aseguradora.
+\item
+  \textbf{Edad}: Puesto que pacientes mayores suelen requerir más
+  cuidados.
+\item
+  \textbf{Índice de masa corporal}: En base a que un IMC elevado está
+  asociado a mayores riesgos durante cirugías.
+\item
+  \textbf{Cantidad de hijos e hijas}: Esto puede influir en el tipo de
+  cobertura familiar (de seguro) que tiene el paciente.
+\item
+  \textbf{Costo médico que pagaría en caso no se aplicase seguro
+  médico}: Importante incluirlo, pues incluso se espera que presente una
+  fuerte correlación positiva con la variable por predecir.
+\item
+  \textbf{Número de procedimientos pasados}: Puede resultar útil en base
+  a que pacientes con muchos procedimientos suelen tener enfermedades
+  crónicas, por lo que se esperaría una mayor cobertura.
+\item
+  \textbf{Número de pasos que realizó en cierto día}: Esta variable
+  tampoco se explica en la fuente, pero la podemos considerar como una
+  medida de la condición física de una persona, qué tan activa es.
+\item
+  \textbf{Número de veces que ha sido hospitalizado}: Pues más
+  hospitalizaciones implican mayor riesgo en la operación, aumentando
+  posiblemente así los costos que cubre la aseguradora.
+\item
+  \textbf{Salario anual}: Como indicador de nivel socioeconómico, se
+  espera que pacientes con ingresos altos cuenten con aseguradoras que
+  cubren mayor parte el costo por intervención médica.
+\end{itemize}
+
+\subsubsection{Itinerario metodológico de la
+modelización}\label{itinerario-metodoluxf3gico-de-la-modelizaciuxf3n}
+
+A continuación, describrimos los pasos a seguir para la construcción de
+diferentes modelos de predicción:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Descarte de observaciones que presenten algún valor faltante para
+  cualquier variable.
+\item
+  Gráficos de dispersión para pares de variables
+\item
+  Debido al máximo establecido en este proyecto, respecto al número de
+  covariables, calculamos las correlaciones múltiples
+\item
+  Filtro de observaciones al azar, debido a máximo establecido en este
+  proyecto.
+\item
+  Limpieza de datos
+\item
+  Construcción del modelo OLS, empleando todas las covariables
+\item
+  Gráficos de valores observados y residuos contra valores estimados.
+  Interpretar R\^{}2
+\item
+  Emplear el test de Levine y Shapiro para averiguar la homocedasticidad
+  y la normalidad.
+\item
+  En caso positivo, evaluar por medio de ANOVA si el modelo tiene
+  sentido. En caso positivo, determinar qué variables explicativas
+  tienen sentido.
+\item
+  Si se encuentran puntos aberrantes, recorrer el modelo sin aquellos y
+  repetir los pasos mencionados.
+\item
+  Emplear selección por delante, para atrás y stepwise.
+\item
+  Ejecutar los tests de tipo ANOVA
+\item
+  En caso el test ANOVA relevante resulte positivo, incluir los tests
+  post-hoc.
+\end{enumerate}
+
+\section{Presentación y análisis de resultados}
+
+\subsubsection{Carga de datos}\label{carga-de-datos}
+
+A continuación, mostramos los datos descargados del sitio web mencionado
+en la sección previa.
+
+Descartamos las observaciones con alguna variable faltante.
+
+\subsubsection{Filtro de variables}\label{filtro-de-variables}
+
+\paragraph{Graficos de dispersión}\label{graficos-de-dispersiuxf3n}
+
+Nótese que la variable por predecir, \texttt{charges}, parece presentar
+una relación lineal con la covariable \texttt{Annual\_Salary}. Asimismo,
+parece haber indicios de que resulta posible transformar las variables
+\texttt{num\_of\_steps} y \texttt{Hospital\_expenditure} por funciones
+logaritmo y exponcial, respectivamente, con fin que se tenga una fuerte
+relación lineal entre el predictor creado y la variable por predecir.
+
+\paragraph{Correlaciones parciales entre
+covariables}\label{correlaciones-parciales-entre-covariables}
+
+Note que cuatro covariables presentan correlación parcial mayor a 0.8,
+en orden descendente \texttt{Anual\_Salary},
+\texttt{Hospital\_expenditure}, \texttt{num\_of\_steps} y
+\texttt{Number\_of\_past\_hospitalizations}. Aquellas variables son muy
+explicadas por las demás (posible multicolinearidad).
+
+Inspeccionemos ahora, de manera particular, las correlaciones entre
+covariables
+
+Observamos una alta correlación entre \texttt{Anual\_Salary} y
+\texttt{Hospital\_expenditure}, con un valor de \(0.9692177\) Asimismo,
+como la variable de salario anual es más sencilla de recopilar (por
+ejemplo, en una encuesta) que la de gasto de hospital, descartamos la
+variable cuantitativa \texttt{Hospital\_expenditure}.
+
+\paragraph{\texorpdfstring{Variable cuantitativa
+\texttt{num\_of\_steps}}{Variable cuantitativa num\_of\_steps}}\label{variable-cuantitativa-num_of_steps}
+
+Inicialmente se consideró descartar la variable referente al número de
+pasos que realizó el paciente en cierto día. Esto pues, a primera vista,
+no se esperaría que tal información resulte relevante para el costo
+final por el procedimiento médico.
+
+Graficamos tal posible regreso contra la variable respuesta:
+
+En base a que la relación parece asemejarse a una exponencial,
+graficamos la variable \texttt{num\_of\_steps} contra el logaritmo de la
+variable respuesta:
+
+En base a que aquella relación parece ser \emph{aproximadamente} lineal,
+optamos por no descartar la variable cuantitativa
+\texttt{num\_of\_steps}.
+
+\paragraph{\texorpdfstring{Variable cuantitativa
+\texttt{age}}{Variable cuantitativa age}}\label{variable-cuantitativa-age}
+
+\paragraph{\texorpdfstring{Variable cuantitativa
+\texttt{bmi}}{Variable cuantitativa bmi}}\label{variable-cuantitativa-bmi}
+
+\paragraph{\texorpdfstring{Variable cuantitativa
+\texttt{children}}{Variable cuantitativa children}}\label{variable-cuantitativa-children}
+
+\paragraph{\texorpdfstring{Variable cuantitativa
+\texttt{past\_consultations}}{Variable cuantitativa past\_consultations}}\label{variable-cuantitativa-past_consultations}
+
+Descartamos la variable cuantitativa \texttt{children}, pues, en base a
+este simple análisis inicial, no parece indicar algún de tipo de
+relación lineal con la variable por predecir. Es más, su gráfico de
+dispersión parece sugerir que consideremos a la variable
+\texttt{children} como cualitativa.
+
+\paragraph{Variables categóricas}\label{variables-categuxf3ricas}
+
+Para el filtro de variables categóricas, descartaremos aquella para la
+cual las distribuciones de la variable respuesta, respecto a los valores
+de aquella variable categórica sean relativamente similares.
+
+\paragraph{\texorpdfstring{Variable cualitativa
+\texttt{region}}{Variable cualitativa region}}\label{variable-cualitativa-region}
+
+Inspeccionamos la distribución de la variable respuesta, respecto a los
+valores de la variable categórica \texttt{region}.
+
+En base a que aquellas funciones densidad no presentan una difencia
+resaltante, descartaremos la variable \texttt{region}. De esa manera,
+las variables cualitativas que emplearemos para esta investigación son
+solo \texttt{sex} y \texttt{smoker}.
+
+\paragraph{Variables finales}\label{variables-finales}
+
+\begin{itemize}
+\tightlist
+\item
+  Variables cualitativas:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{sex}
+  \item
+    \texttt{smoker}
+  \end{itemize}
+\item
+  Variables cuantitativas:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{age}
+  \item
+    \texttt{bmi}
+  \item
+    \texttt{Claim\_Amount}
+  \item
+    \texttt{past\_consultations}
+  \item
+    \texttt{num\_of\_steps}
+  \item
+    \texttt{Number\_of\_past\_hospitalizations}
+  \item
+    \texttt{Anual\_Salary}
+  \item
+    \texttt{charges} (\textbf{variable respuesta})
+  \end{itemize}
+\end{itemize}
+
+Para limitarnos a 500 filas, según la restricción de este proyecto,
+realizaremos un muestreo:
+
+\subsubsection{Modelamiento}\label{modelamiento}
+
+Note que los tipos de datos de las covariables son adecuadas. En
+particular, las funciones por emplear se encargarán de la conversión
+numérica a las covariables categóricas \texttt{age} y \texttt{sex}.
+
+Comencemos definiendo algunas funciones auxliares en el análisis y
+modelamiento.
+
+\paragraph{Modelo completo}\label{modelo-completo}
+
+En base al valor del \(R^2\), note que este modelo explica alrededor del
+\textbf{99.1\%} de la varianza de \texttt{charges}.
+
+\paragraph{Tests}\label{tests}
+
+\textbf{Prueba de homocedasticidad}
+
+En base al p-valor menor a 0.05, se tiene suficiente evidencia de que la
+\textbf{varianza de los residuos no es constante}, es decir, no se
+cumple la homocedasticidad.
+
+\textbf{Prueba de normalidad de los errores}
+
+En base al p-valor menor a 0.05, contamos con suficiente evidencia para
+afirmar que los \textbf{residuos no siguen una distribución normal}.
+
+Al ejecutar el test para los residuos estandarizados, se llega a la
+misma conclusión respecto a la normalidad de los residuos.
+
+Como se ha fallado en ambos tests, no estamos en condición formal de
+aplicar ANOVA. Sin embargo, inspeccionemos su resultado de todas
+maneras, según la tabla de análisis de la varianza.
+
+Como el p-valor es mucho menor que 0.05, concluimos que este modelo
+tiene sentido. En particular, existe alguna covariable que explica
+significativamente la varianza asociada a \texttt{charges}.
+
+Por otro lado, según este otro test, solo se puede afirmar para las
+variables \texttt{age}, \texttt{num\_of\_steps},
+\texttt{Number\_of\_past\_hospitalizations} y \texttt{Anual\_Salary} que
+tienen sentido en el modelo.
+
+\paragraph{Puntos aberrantes}\label{puntos-aberrantes}
+
+\textbf{Puntos más lejos de 3 promedios}
+
+Según aquel criterio, se tienen \(38\) puntos aberrantes \ldots{} una
+cantidad significativa.
+
+\textbf{Puntos más lejos de cuatro veces los regresores}
+
+Según este otro criterio, se tienen \(20\) puntos aberrantes, también
+una cantidad significativa.
+
+\textbf{Mayores apalancamientos}: Resaltamos en rojo los 10 puntos con
+mayor apalancamiento.
+
+\subsubsection{Modelo tras remover puntos
+aberrantes}\label{modelo-tras-remover-puntos-aberrantes}
+
+Note que el porcentaje de varianza explicada aumentó de 99.1\% a
+\textbf{99.4\%}.
+
+Asimismo, resaltamos que el \textbf{residuo promedio es menor} en el
+modelo tras remover puntos aberrantes.
+
+El p-valor asociado al test de homocedasticidad prácticamente no ha
+cambiado.
+
+Por otro lado, el p-valor asociado al Test de Shapiro \textbf{aumentó
+significativamente}, de \(1.01*10^{-5}\) a \(0.0379\). Este último valor
+es cercano a 0.05, aunque aún menor, por lo cual se sigue evidenciando
+la \textbf{no normalidad} de los residuos tras haber removido aquellos
+puntos aberrantes.
+
+En base a estas comparaciones, el modelo tras haber removido los puntos
+aberrantes resulta \textbf{mejor} que el modelo inicialmente construido.
+
+\subsubsection{Selección reducida de
+covariables}\label{selecciuxf3n-reducida-de-covariables}
+
+Calculamos las correlaciones parciales para estas observaciones.
+
+Note que aún existen covariables con correlación parcial elevada
+(\texttt{num\_of\_steps}, \texttt{Anual\_Salary} y
+\texttt{Number\_of\_past\_hospitalizations}), mayor que 0.8; pero ya no
+existe covariable con correlación parcial mayor a \(0.9\).
+
+Sin embargo, los valores pequeños en valor absoluto para correlación
+parcial entre par de covariables implica que existe \textbf{poca
+multicolinealidad} entre las covariables.
+
+\subsubsection{Modelo final}\label{modelo-final}
+
+Comparando las covariables finales de los tres últimos modelos creados,
+además de sus coeficientes respectivos, note que se trata de un único
+modelo.
+
+Asimimo, aquel modelo presenta un \(R^2\) elevado, similar al del previo
+mejor modelo, también con un valor aproximado a 99.4\%.
+
+No obstante, recalcamos que el nuevo modelo presenta un \textbf{residuo
+promedio menor} que el del mejor modelo que habíamos construído hasta
+ahora.
+
+En ese sentido, el mejor modelo que planteamos es \texttt{modelo\_both}.
+Este presenta como covariables a \texttt{age}, \texttt{Anual\_Salary},
+\texttt{bmi}, \texttt{smoker}, \texttt{num\_of\_steps} y
+\texttt{Number\_of\_past\_hospitalizations}.
+
+\textbf{Prueba de homocedasticidad}
+
+\textbf{Prueba de normalidad de los errores}
+
+Para este modelo también se concluye que no se cumple la
+homocedasticidad y que los residuos no presentan una distribución
+normal.
+
+A partir de estos dos últimos tests, se concluye que este modelo tiene
+sentido, pero que la covariable \texttt{bmi} no es significativa para
+ese modelo.
+
+En base a que residuos de este modelo no satisfacen la hipótesis de
+homocedasticidad ni de distribución normal, no presentaremos los
+análisis de ANOVA tipo I, II ni III, por tratarse aquellas hipótesis de
+condiciones necesarias.
+
+Note que el último modelo presentado cuenta con el mayor \(R^2\)
+ajustado, 99.39\%, entre los modelos expuestos. Este criterio refuerza
+su selección como modelo final para este proyecto.
+
+Entre lo positivo de este estudio, recalcamos que el modelo final
+presenta un alto valor de \(R^2\). Sin embargo, el hecho que para todos
+los modelos que creamos se llegó a concluir no homocedasticidad y
+residuos con distribución no normal, parece sugerir que el modelo de
+regresión lineal posiblemente no sea el adecuado para estos datos.
+
+En todo caso, resulta posible que un modelo lineal generalizado resulte
+más apropiado para el uso con estos datos, en particular debido a la no
+homocedasticidad encontrada.
+
+Respecto al mejor modelo que presentamos, analicemos la relevancia de
+las covariables que consideró para su definición:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{age}: Predictor muy relevante con la variable respuesta, pues,
+  como se mencionó en una sección previa, sucede que paciente de mayor
+  edad suelen requerir más cuidados médicos, su salud está en mayor
+  riesgo, por lo que se espera que la aseguradora cubra más el costo de
+  un tratamiento médico. En efecto, tal es el caso, pues el coeficiente
+  asociado a \texttt{age} en el modelo resulta negativo. Así, a mayor
+  edad del paciente, se espera que pague menos (pues la aseguradora
+  cubre mayor costo) por un tratamiento médico.
+\item
+  \texttt{Anual\_Salary}: En el caso de pacientes con alto ingreso
+  anual, se espera que sus tratamientos médicos sean también de alto
+  costo. Esto implica que la aseguradora cubra una \textbf{menor
+  proporción} del costo médico, pues la cobertura ya resulta alta en
+  base al precio total del procedimiento. Esta relación se hace evidente
+  en el hecho que el coeficiente asociado a \texttt{Annual\_Salary} es
+  positivo; es decir, a mayor salario anual, menos costo cubre la
+  aseguradora.
+\item
+  \texttt{bmi}: La relación entre esta covariable y la variable por
+  predecir es muy similar la relación de la edad y la variable por
+  predecir. Por ello, el análisis el análogo, y, simplemente recalcamos
+  que el modelo resalta lo esperado (en base al coeficiente negativo
+  asociado a \texttt{bmi}), pues, a mayor índice de masa corporal
+  (\texttt{bmi}), la aseguradora cubre más del costo, por lo cual el
+  paciente paga menos.
+\item
+  \texttt{smoker}: En el modelo, esta covariable categórica ha sido
+  convertida en 0 y 1; considerando el caso 1 cuando el paciente es
+  fumador. En ese sentido, el coeficiente positivo asociado a esta
+  covariable indice que, si el paciente es fumador, entonces su precio a
+  pagar por tratamiento médico es también mayor, pues la aseguradora
+  cubre \textbf{menos} del costo del procedimiento médico.
+\item
+  \texttt{num\_of\_steps}: Recordemos que esta covariable la
+  interpretamos como un indicador del estado de salud del paciente. Es
+  decir, un mayor valor de \texttt{num\_of\_steps} representa un mejor
+  estado de salud, de actividad física, del paciente. En ese sentido, es
+  coherente que aquella covariable presente un coeficiente positivo
+  según el modelo. Esto pues, mientras más saludable sea una persona, su
+  gasto por procedimiento médico será mayor; es decir, la aseguradora
+  cubrirá una \textbf{menor} cantidad del costo del procedimiento.
+\item
+  \texttt{Number\_of\_past\_hospitalizations}: Esta covariable es
+  posiblemente la que más relación se espera tenga con la variable por
+  predecir. El coeficiente negativo asociada a esta covariable es
+  coherente con el hecho que, a mayor número de hospitalizaciones
+  pasadas, se espera que el seguro cubra una mayor parte del costo del
+  procedimiento médico, por lo cual el gasto del paciente es
+  \textbf{menor} por procedimiento médico.
+\end{itemize}
+
+Como no existe una interpretación física, realista, al caso
+\texttt{bmi\ =\ 0}, no interpretaremos el intercepto asociado al modelo.
+
+Este modelo se limita a las hipótesis del método MCO. Ahora analizaremos
+si un modelo del tipo \textbf{lineal generalizado} genera mejoras
+significativas.
+
+Comencemos por una inspección de la homocedasticidad y autocorrelación
+de los errores del modelo MCO final.
+
+Vía el test de Breusch-Pagan, con un p-valor de \(9.796 \cdot 10^{-6}\),
+existe suficiente evidencia para afirmar el modelo planteado no presenta
+homocedasticidad. Por otro lado, vía el test de Durbin-Watson, con un
+p-valor de \(0.9838\), no se cuenta con suficiente evidencia para
+rechazar que los errores del modelo son independientes entre sí.
+
+En ese sentido, para los modelos de tipo lineal general por plantear no
+consideraremos el tipo \textbf{AR(1)}. De esa forma, plantearemos
+modelos del tipo con varianza ponderada, o varianza constante por
+categoría, o incluso una combinación de ambos modelos.
+
+Asimismo, por medio del test de Breusch-Pagan, con un p-valor de
+\(2.394 \cdot 10^{-12}\), existe suficiente evidencia para afirmar que
+el modelo completo (considerando todas las covariables) no presenta
+homocedasticidad. De esa forma, queda descartado el uso de técnicas de
+regularización como Lasso y Ridge, pues ambas suponen que los errores
+del modelo tienen varianza constante.
+
+\section{Conclusiones}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Validación de hipótesis sobre correlaciones}: Se confirmaron
+  las hipótesis respecto al tipo de correlación (positiva o negativa)
+  entre las covariables del modelo final y el precio por pagar por
+  procedimiento médico.
+\item
+  \textbf{Capacidad predictiva del modelo}: El último modelo presentado
+  logró explicar el \textbf{99.4\%} de la varianza en el costo para el
+  paciente por procedimiento médico, demostrando así una capacidad
+  predictiva alta. Este nivel de precisión sugiere que las variables
+  seleccionadas capturan efectivamente los factores determinantes en la
+  cobertura de seguros médicos.
+\item
+  \textbf{Variables más influyentes identificadas}: El análisis reveló
+  que las variables más significativas para predecir los costos
+  cubiertos son: edad (\texttt{age}), salario anual
+  (\texttt{Annual\_Salary}), índice de masa corporal (\texttt{bmi}),
+  hábito de fumar (\texttt{smoker}), número de pasos
+  (\texttt{num\_of\_steps}), y número de hospitalizaciones previas
+  (\texttt{Number\_of\_past\_hospitalizations}). Estas variables
+  representan factores demográficos, socioeconómicos y de estilo de vida
+  que las aseguradoras consideran en sus decisiones de cobertura.
+\item
+  \textbf{Limitaciones metodológicas detectadas}: A pesar del alto poder
+  predictivo, el modelo no satisface supuestos importante para la
+  regresión lineal, la homocedasticidad y la normalidad de los residuos.
+  Estas limitaciones sugieren que un modelo lineal simple podría no ser
+  la aproximación más adecuada para estos datos.
+\item
+  \textbf{Recomendación de modelos alternativos}: Los hallazgos de
+  heterocedasticidad y no normalidad de residuos indican que un
+  \textbf{modelo lineal generalizado (GLM)} podría ser más apropiado
+  para este tipo de datos. Estos enfoques alternativos podrían
+  proporcionar estimaciones más confiables, además de intervalos de
+  confianza más precisos.
+\item
+  \textbf{Necesidad de validación externa}: Aunque el modelo muestra
+  alta precisión en los datos analizados, se recomienda validar estos
+  resultados con datos de diferentes poblaciones, sistemas de salud y
+  contextos geográficos para confirmar su generalización. Recalcamos que
+  no se especifica en la fuente online de estos datos, la proveniencia
+  de las observaciones analizadas.
+\item
+  Sin transformar los datos, se require el uso de un modelo que
+  considere heterocedasticidad pero no autocorrelación.
+\end{enumerate}
+
+
+
+
+\end{document}

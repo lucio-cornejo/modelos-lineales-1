@@ -1,10 +1,9 @@
 ---
-title: "Trabajo de aplicación: Predicción de gasto por seguro médico"
-author: "Lucio Enrique Cornejo Ramírez"
-date: "`r Sys.Date()`"
-format: 
+format:
   html:
+    self-contained: true
     toc: true
+    toc-title: Tabla de contenidos
     toc-depth: 3
     toc-location: left
     theme: united
@@ -13,20 +12,60 @@ format:
       collapsed: false
       smooth-scroll: true
 
+  # pdf:
+  #   toc: false
+  #   number-sections: false
+  #   colorlinks: true
+  #   highlight-style: tango
+  #   keep-tex: true
+  #   documentclass: article
+  #   pdf-engine: xelatex
+
 execute:
   eval: true
+  echo: true
+  warning: false
+  # eval: false
+  # echo: false
   cache: true
 
-editor:
-  markdown:
-    wrap: 120
-
-knitr:
-  opts_chunk: 
-    warning: false
-    message: false
+# code-fold: show
 ---
 
+```{=latex}
+\begin{titlepage}
+\centering
+{\bfseries\large Pontificia Universidad Católica del Perú \par}
+\vspace{1cm}
+{\scshape\large Maestría en Estadística \par}
+\vspace{1cm}
+{\scshape\large Trabajo de Aplicación: Predicción de gasto reducido por seguro médico \par}
+
+\rule{150mm}{0.1mm}\\  
+\vspace{3cm}
+{\large Curso: Modelos lineales 1 \par}
+\vfill
+{\large Autor: \par}
+{\large Lucio Enrique Cornejo Ramírez \par}
+\vfill
+{\large Profesores: \par}
+{\large Camiz Sergio \par}
+{\large Alex de la Cruz Huayanay \par}
+\vfill
+{\large Julio 2025 \par}
+\end{titlepage}
+```
+
+```{=latex}
+\renewcommand{\contentsname}{Tabla de Contenidos}
+
+\tableofcontents
+\newpage
+```
+
+```{=latex}
+\section{Introducción}
+```
 
 ## Introducción
 
@@ -72,7 +111,11 @@ Para el modelamiento, se considerará además las siguientes características de
   - Salario anual (`Anual_Salary`)
 
 
-## Materiales y métodos
+```{=latex}
+\section{Metodología}
+```
+
+## Metodología
 
 ### Datos/Observaciones
 
@@ -131,7 +174,11 @@ normalidad.
 1. En caso el test ANOVA relevante resulte positivo, incluir los tests post-hoc.
 
 
-## Resultados
+```{=latex}
+\section{Presentación y análisis de resultados}
+```
+
+## Presentación y análisis de resultados
 
 ### Carga de datos
 
@@ -145,6 +192,8 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(reshape2)
+library(nlme)
+library(glmnet)
 ```
 
 ```{r}
@@ -276,7 +325,8 @@ melt(matriz_cor) |>
 ```
 
 Observamos una alta correlación entre `Anual_Salary` y `Hospital_expenditure`,
-con un valor de `r cor(datos$Anual_Salary, datos$Hospital_expenditure)`. Asimismo, como la variable de salario anual es más sencilla de recopilar (por ejemplo, en una encuesta) que la de gasto de hospital, 
+con un valor de $0.9692177$
+Asimismo, como la variable de salario anual es más sencilla de recopilar (por ejemplo, en una encuesta) que la de gasto de hospital, 
 descartamos la variable cuantitativa `Hospital_expenditure`.
 
 ```{r}
@@ -664,7 +714,8 @@ modelo_completo.cooked_1 <- which(modelo_completo.cd > 3*modelo_completo.mcd)
 modelo_completo.cooked_1
 ```
 
-Según aquel criterio, se tienen `r length(modelo_completo.cooked_1)` puntos aberrantes ... una cantidad significativa.
+Según aquel criterio, se tienen
+$38$ puntos aberrantes ... una cantidad significativa.
 
 **Puntos más lejos de cuatro veces los regresores**
 
@@ -673,7 +724,7 @@ modelo_completo.cooked_2 <- which(modelo_completo.cd > (4 / dim(obs)))
 modelo_completo.cooked_2
 ```
 
-Según este otro criterio, se tienen `r length(modelo_completo.cooked_2)`
+Según este otro criterio, se tienen $20$
 puntos aberrantes, también una cantidad significativa.
 
 **Mayores apalancamientos**: Resaltamos en rojo los 10 puntos con mayor apalancamiento.
@@ -948,9 +999,6 @@ En base a que residuos de este modelo no satisfacen la hipótesis de homocedasti
 ni de distribución normal, no presentaremos los análisis de ANOVA tipo I, II ni III,
 por tratarse aquellas hipótesis de condiciones necesarias.
 
-
-## Discusión
-
 ```{r}
 sum.lm(modelo_completo)
 sum.lm(mod_com_2)
@@ -963,6 +1011,10 @@ Este criterio refuerza su selección como modelo final para este proyecto.
 
 ```{r}
 modelo_both
+```
+
+```{r}
+QuantPsyc::lm.beta(modelo_both)
 ```
 
 Entre lo positivo de este estudio, recalcamos que el modelo final presenta un alto
@@ -1004,6 +1056,97 @@ por procedimiento médico.
 Como no existe una interpretación física, realista, al caso `bmi = 0`, no interpretaremos
 el intercepto asociado al modelo.
 
+Este modelo se limita a las hipótesis del método MCO. Ahora analizaremos si un modelo del tipo
+**lineal generalizado** genera mejoras significativas.
+
+Comencemos por una inspección de la homocedasticidad y autocorrelación de los errores del modelo MCO final.
+
+```{r}
+lmtest::bptest(modelo_both)
+```
+
+```{r}
+lmtest::dwtest(modelo_both)
+```
+
+Vía el test de Breusch-Pagan, con un p-valor de $9.796 \cdot 10^{-6}$,
+existe suficiente evidencia para afirmar el modelo planteado no presenta homocedasticidad.
+Por otro lado, vía el test de Durbin-Watson, con un p-valor de $0.9838$,
+no se cuenta con suficiente evidencia para rechazar que los errores del modelo
+son independientes entre sí.
+
+En ese sentido, para los modelos de tipo lineal general por plantear no consideraremos
+el tipo **AR(1)**. De esa forma, plantearemos modelos del tipo con varianza ponderada,
+o varianza constante por categoría, o incluso una combinación de ambos modelos.
+
+```{r}
+lmtest::bptest(modelo_completo)
+```
+
+Asimismo, por medio del test de Breusch-Pagan, con un p-valor de $2.394 \cdot 10^{-12}$,
+existe suficiente evidencia para afirmar que el modelo completo (considerando todas las covariables)
+no presenta homocedasticidad. De esa forma, queda descartado el uso de técnicas de regularización
+como Lasso y Ridge, pues ambas suponen que los errores del modelo tienen varianza constante.
+
+```{r}
+obs_sin_aber$sex <- as.factor(obs_sin_aber$sex)
+obs_sin_aber$smoker <- as.factor(obs_sin_aber$smoker)
+
+AIC(modelo_both)
+```
+```{r}
+modelo_varianza_smoker <- gls(
+  charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + smoker + age + bmi,
+  data = obs_sin_aber,
+  weights = varIdent(form = ~1 | smoker)
+)
+summary(modelo_varianza_smoker)
+```
+
+```{r}
+modelo_varianza_sex <- gls(
+  charges ~ Anual_Salary + num_of_steps + Number_of_past_hospitalizations + smoker + age + bmi,
+  data = obs_sin_aber,
+  weights = varIdent(form = ~1 | sex)
+)
+summary(modelo_varianza_sex)
+```
+
+Ahora, el mejor modelo (menor AIC) resulta aquel que emplea las covariables del previo
+mejor modelo, pero considerando varianza constante de `charges`, respecto a si el paciente fuma o no.
+
+```{r}
+X <- model.matrix(
+  charges ~ age + Anual_Salary + bmi + smoker + num_of_steps + Number_of_past_hospitalizations,
+  data = obs_sin_aber
+)[,-1]
+y <- obs_sin_aber$charges
+
+set.seed(123)
+cv_lasso <- cv.glmnet(X, y, alpha = 1, standardize = TRUE)
+plot(cv_lasso)
+
+best_lambda <- cv_lasso$lambda.min
+lambda_1se <- cv_lasso$lambda.1se
+lasso_model <- glmnet(X, y, alpha = 1, lambda = best_lambda)
+
+coef(lasso_model)
+```
+
+```{r}
+coef_best <- coef(cv_lasso, s = best_lambda)
+df_best <- sum(coef_best != 0) - 1
+
+n <- length(y)
+y_pred_best <- predict(cv_lasso, newx = X, s = best_lambda)
+rss_best <- sum((y - y_pred_best)^2)
+aic_best <- n * log(rss_best/n) + 2 * df_best
+aic_best
+```
+
+```{=latex}
+\section{Conclusiones}
+```
 
 ## Conclusiones
 
@@ -1019,3 +1162,5 @@ el intercepto asociado al modelo.
 
 1. **Necesidad de validación externa**: Aunque el modelo muestra alta precisión en los datos analizados, se recomienda validar estos resultados con datos de diferentes poblaciones, sistemas de salud y contextos geográficos para confirmar su generalización. Recalcamos que no se especifica
 en la fuente online de estos datos, la proveniencia de las observaciones analizadas.
+
+1. Sin transformar los datos, se require el uso de un modelo que considere heterocedasticidad pero no autocorrelación.

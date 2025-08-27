@@ -2,3 +2,5 @@
 _book
 renv
 libs
+
+*_cache

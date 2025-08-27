@@ -1,0 +1,121 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Trabajo de Aplicación},
+    pdfpagemode=FullScreen,
+    }
+\usepackage{xcolor}
+\usepackage[a4paper, total={6.4in, 9in}]{geometry}
+\usepackage{setspace}
+\spacing{1.5}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\bfseries\large Pontificia Universidad Católica del Perú \par}
+\vspace{1cm}
+{\scshape\large Maestría en Estadística \par}
+\vspace{1cm}
+{\scshape\large Trabajo de Aplicación: \textcolor{red}{aquí un título apropiado} \par}
+
+\rule{150mm}{0.1mm}\\  
+\vspace{3cm}
+{\large Curso: Modelos lineales 1 \par}
+\vfill
+{\large Autor: \par}
+{\large Nombre Apellidos \par}
+\vfill
+{\large Profesores: \par}
+{\large Camiz Sergio \par}
+{\large Alex de la Cruz Huayanay \par}
+\vfill
+{\large Junio 2025 \par}
+\end{titlepage}
+
+% Resumen
+\section*{Indicaciones generales}
+
+\noindent El informe debe tener una extensión máxima de 12 páginas, distribuidas de la siguiente forma:  
+    \begin{itemize}
+        \item Máximo 1 página de introducción,
+        \item Máximo 2 páginas y media de metodología,
+        \item Máximo 6 páginas de presentación y análisis de resultados,
+        \item Máximo 1 página de comentarios o conclusiones finales.
+        \item Referencias.
+    \end{itemize}
+
+\begin{itemize}
+    \item A lo largo del informe no debe colocar salidas de R (ni capturas de pantalla o códigos).
+    
+    \item El trabajo final debe entregarse en formato PDF y se debe incluir el archivo en LaTeX o word.
+
+    \item Se debe adjuntar la base de datos utilizada para el análisis.
+
+    \item Se debe adjuntar todo el código en \texttt{R} empleado para la elaboración del informe.
+\end{itemize}
+
+\newpage
+
+% Índice
+\tableofcontents
+
+\newpage
+
+% Introducción
+\section{Introducción}
+En esta sección, el estudiante debe:  
+\begin{itemize}
+    \item Justificar la elección de la base de datos y describir explicando su contexto. 
+    \item Especificar la variable respuesta y las variables explicativas.  
+    \item Plantear los objetivos del análisis indicando de forma clara qué relación o patrones espera investigar.
+\end{itemize}
+
+\noindent \textbf{Nota:} Seleccionar una base de datos pública de una fuente conocida (UCI, Kaggle, INEI u otra).  
+
+
+% Metodología
+\section{Metodología}
+En esta sección se espera que el estudiante detalle los pasos cómo implementará cada parte del análisis. Aquí solo va la metodología y no los resultados. Debe incluir:
+\begin{itemize}
+    \item Análisis Exploratorio de Datos (EDA): qué usará y qué espera analizar.
+    \item Selección de Variables: qué tipos de selección usará y qué criterio (AIC, BIC, $R^2$ ajustado) (solo uno o dos).  
+    \item Regularización: Presentar los modelos Ridge y Lasso, para el contexto de sus datos. Qué librerías usará y cómo comparará resultados con la selección clásica.  
+    \item Modelos de Regresión: Presentar modelo AR(1), modelo con heterocedasticidad y modelo de regresión robusta en el contexto de sus datos. Explicar cómo verificará la auto-correlación para justificar el uso o no de un modelo AR(1) o un modelo ponderado para corregir heterocedasticidad. Qué paquetes usará.
+\end{itemize}
+
+% Resultados
+\section{Resultados}
+En esta sección se espera que el estudiante presente:
+\begin{itemize}
+    \item Descripción de los Datos: Tablas y gráficos principales del EDA.  
+    \item Selección de Variables: Resultados de la selección de subconjuntos y Stepwise, tablas de modelos comparativos, variables retenidas y justificación.  
+    \item Regularización: Coeficientes estimados para Ridge y Lasso para distintos valores de penalización, comparando con los modelos clásicos.
+    \item Modelos AR(1) y Ponderado: Ecuación final de los modelo ajustados, parámetros estimados, diagnóstico de supuestos y comparación con el modelo usando regularización y MCO. Elegir un modelo entre todos los propuestos.
+    \item Modelos de regresión robusta: para el mismo conjunto de datos, analizar modelo de regresión robusta y comparar con el modelo elegido en el ítem anterior. Eligir el mejor modelo.
+    \item Validación del modelo final: Análisis de residuos, gráficos de ajuste y métricas de calidad del modelo.
+\end{itemize}
+
+% Discusión
+\section{Comentarios finales}
+En esta sección se espera que el estudiante:
+\begin{itemize}
+    \item Destaque la utilidad del mejor modelo en contraste con los otros modelos aplicados.
+    \item Identifique limitaciones del análisis y del conjunto de datos. 
+\end{itemize}
+
+
+
+\section*{Referencias}
+
+Las más principales
+
+\end{document}

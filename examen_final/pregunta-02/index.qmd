@@ -1,0 +1,117 @@
+---
+title: Pregunta 2
+author: Lucio Cornejo
+format:
+  docx:
+    toc: true
+    toc-depth: 3
+  # html: 
+  #   toc: true
+  #   toc-depth: 3
+  #   toc-location: left
+  #   theme: united
+  #   highlight: tango
+---
+
+```{r}
+#| warning: false
+library(dplyr)
+library(nlme)
+```
+
+```{r}
+# load("./examen_final/pregunta-02/Presion.RData")
+load("./Presion.RData")
+str(datos)
+datos
+```
+
+## Item a
+
+Con el fin de emplear la variable categórica `Tratamiento`
+en el modelo, vamos a binarizarla y no emplear en los modelos
+la variable dummy asociada a tratamiento tradicional.
+
+```{r}
+unique(datos$Tratamiento)
+
+datos <- datos |>
+  mutate(D_M = Tratamiento == "Moderno") |>
+  mutate(D_C = Tratamiento == "Combinado")
+datos
+```
+
+**Modelo MCO**
+
+```{r}
+modelo_1 <- lm(Presion ~ D_M + D_C, data = datos)
+summary(modelo_1)
+```
+
+**Prueba de homocedasticidad**
+
+```{r}
+lmtest::bptest(modelo_1)
+```
+
+En base al p-valor $0.004587$ menor que $0.05$, concluimos que existe suficiente evidencia
+para afirmar que existe heterocedasticidad en los errores del modelo planteado.
+
+
+## Item b
+
+Se plantea un modelo donde se supone que la varianza es constante por tipo de 
+tratamiento antihipertensivo.
+
+```{r}
+datos$Tratamiento <- as.factor(datos$Tratamiento)
+datos$Tratamiento <- relevel(datos$Tratamiento, ref = "Tradicional")
+
+modelo_2 <- gls(
+  Presion ~ Tratamiento,
+  data = datos,
+  weights = varIdent(form = ~1 | Tratamiento)
+)
+summary(modelo_2)
+```
+
+La estimación obtenida por este modelo es de la forma
+
+$\text{Presi\'on}_{it} = 124.560 -5.995 D_{M,i} - 1.604 D_{C,i} + \epsilon_{i,t}$
+
+Asimismo, se estimaron las siguientes varianzas, por tratamiento, de la presión:
+
+- Tratamiento **Tradicional**: $0.2158846$
+- Tratamiento **Moderno**: $0.7882693$
+- Tratamiento **Combinado**: $1.0000000$
+
+La varianza más baja se encontró para el tratamiento tradicional, 
+en particular, con un valor no tan lejano de cero; por lo cual
+la presión en ese grupo presenta poca dispersión.
+
+Por otro lado, se obtuvo una mayor varianza de presión para el tratamiento
+moderno, casi el cuádruple de varianza, de hecho.
+Sin embargo, la mayor dispersión de la presión se encuentra para los
+pacientes que recibieron tratamiento combinado.
+
+## Item c
+
+
+```{r}
+modelo_3 <- gls(
+  Presion ~ D_M + D_C,
+  data = datos,
+  correlation = corAR1(form = ~1),
+  method = "ML"
+)
+summary(modelo_3)
+```
+
+Ecuación del modelo planteado:
+
+$\text{Presi\'on}_{it} = 131.51726 -8.22172 D_{M,i} - 10.22953 D_{C,i} + \epsilon_{i,t}$
+
+## Item d
+
+## Item e
+
